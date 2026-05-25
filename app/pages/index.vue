@@ -85,7 +85,7 @@
               v-else
               title="Sign in with Google"
               class="p-1.5 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:text-blue-400 dark:hover:bg-blue-900/20 transition-colors flex justify-center items-center"
-              @click="gsiPrompt"
+              @click="showLogin = true"
             >
               <Icon name="material-symbols:login" class="text-xl w-5 h-5" />
             </button>
@@ -202,6 +202,9 @@
       @close="showAdd = false"
       @added="showAdd = false"
     />
+
+    <!-- Login modal -->
+    <LoginModal v-if="showLogin" @close="showLogin = false" />
   </div>
 </template>
 
@@ -223,6 +226,7 @@ const editTarget = ref<QrisLocation | null>(null)
 const userCenter = ref<{ lat: number; lng: number } | null>(null)
 const mapCenter = ref<{ lat: number; lng: number } | null>(null)
 const activeTab = ref<'list' | 'map'>('list')
+const showLogin = ref(false)
 const mapViewRef = ref<{ invalidateSize: () => void } | null>(null)
 const year = new Date().getFullYear()
 
@@ -234,12 +238,14 @@ useSeoMeta({
     'Peta crowdsource lokasi QRIS masjid dan mushola di Indonesia. Temukan, tambah, dan verifikasi titik QRIS terdekat.',
   ogTitle: 'InfaQRIS — Scan. Give. Berkah.',
   ogDescription: 'Peta crowdsource lokasi QRIS masjid dan mushola di Indonesia.',
-  ogImage: `${origin}/android-chrome-512x512.png`,
+  ogImage: `${origin}/infaqris.png`,
+  ogImageWidth: 800,
+  ogImageHeight: 800,
   ogType: 'website',
   twitterCard: 'summary',
   twitterTitle: 'InfaQRIS — Scan. Give. Berkah.',
   twitterDescription: 'Peta crowdsource lokasi QRIS masjid dan mushola di Indonesia.',
-  twitterImage: `${origin}/android-chrome-512x512.png`,
+  twitterImage: `${origin}/infaqris.png`,
 })
 
 // Invalidate map size when switching to map tab (Leaflet needs visible container)
@@ -310,9 +316,9 @@ async function handleLogout() {
   await logout()
 }
 
-function gsiPrompt() {
-  ;(window as any).google?.accounts?.id?.prompt()
-}
+watch(user, (u) => {
+  if (u) showLogin.value = false
+})
 
 async function initGsi() {
   const clientId = runtimeConfig.public.googleClientId as string
