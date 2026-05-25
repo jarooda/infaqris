@@ -52,6 +52,15 @@
             </div>
           </div>
           <div class="flex items-center gap-1 shrink-0">
+            <!-- Install PWA -->
+            <button
+              v-if="canInstall"
+              title="Install InfaQRIS"
+              class="p-1.5 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:text-blue-400 dark:hover:bg-blue-900/20 transition-colors flex justify-center items-center"
+              @click="installPwa"
+            >
+              <Icon name="material-symbols:install-mobile" class="text-xl w-5 h-5" />
+            </button>
             <!-- Theme toggle -->
             <button
               :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
@@ -218,6 +227,7 @@ const runtimeConfig = useRuntimeConfig()
 const { locations, pending } = useLocations()
 const { user, fetchUser, login, logout } = useAuth()
 const { isDark, toggle: toggleTheme, init: initTheme } = useTheme()
+const { canInstall, install: installPwa } = useInstallPwa()
 
 const search = ref('')
 const selectedId = ref<string | null>(null)
