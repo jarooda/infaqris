@@ -69,21 +69,24 @@
       </div>
 
       <!-- Attribution -->
-      <div class="px-4 pb-4 border-t border-gray-100 dark:border-gray-700 pt-3 space-y-1">
-        <div class="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
+      <div
+        v-if="location.created_at"
+        class="px-4 pb-4 border-t border-gray-100 dark:border-gray-700 pt-3 flex items-center justify-between gap-4"
+      >
+        <div
+          class="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 cursor-default"
+          :title="location.creator"
+        >
           <Icon name="material-symbols:person-add" class="text-sm shrink-0" />
-          <span class="truncate">{{ location.creator || 'Unknown' }}</span>
-          <span v-if="location.created_at" class="shrink-0"
-            >· {{ formatDate(location.created_at) }}</span
-          >
+          <span>{{ formatDate(location.created_at) }}</span>
         </div>
         <div
           v-if="location.modified_at"
-          class="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500"
+          class="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 cursor-default"
+          :title="location.latest_editor"
         >
           <Icon name="material-symbols:edit" class="text-sm shrink-0" />
-          <span class="truncate">{{ location.latest_editor }}</span>
-          <span class="shrink-0">· {{ formatDate(location.modified_at) }}</span>
+          <span>{{ formatDate(location.modified_at) }}</span>
         </div>
       </div>
     </div>
