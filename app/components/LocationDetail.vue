@@ -27,13 +27,50 @@
         <canvas ref="qrCanvas" class="rounded-lg" />
       </div>
 
-      <!-- Actions -->
+      <!-- QRIS Info -->
       <div class="p-4 pt-3 space-y-2">
-        <p
-          class="text-xs text-gray-400 dark:text-gray-500 break-all text-center line-clamp-2 font-mono"
+        <div v-if="qrisInfo" class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+          <div>
+            <span class="text-gray-400 dark:text-gray-500">Merchant</span>
+            <p
+              class="text-gray-700 dark:text-gray-300 font-medium truncate"
+              :title="qrisInfo.merchantName"
+            >
+              {{ qrisInfo.merchantName || '—' }}
+            </p>
+          </div>
+          <div>
+            <span class="text-gray-400 dark:text-gray-500">Bank</span>
+            <p class="text-gray-700 dark:text-gray-300 font-medium truncate" :title="qrisInfo.bank">
+              {{ qrisInfo.bank || '—' }}
+            </p>
+          </div>
+          <div>
+            <span class="text-gray-400 dark:text-gray-500">Merchant ID</span>
+            <p
+              class="text-gray-700 dark:text-gray-300 font-mono truncate"
+              :title="qrisInfo.merchantId"
+            >
+              {{ qrisInfo.merchantId || '—' }}
+            </p>
+          </div>
+          <div>
+            <span class="text-gray-400 dark:text-gray-500">Kota / City</span>
+            <p class="text-gray-700 dark:text-gray-300 font-medium truncate" :title="qrisInfo.city">
+              {{ qrisInfo.city || '—' }}
+            </p>
+          </div>
+        </div>
+        <div
+          v-else
+          class="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-3 py-2"
         >
-          {{ location.qris }}
-        </p>
+          <Icon name="material-symbols:warning-outline" class="w-4 h-4 shrink-0" />
+          <span
+            >QRIS tidak valid — silakan edit atau laporkan. /
+            <em>Invalid QRIS, please edit or report.</em></span
+          >
+        </div>
         <button
           class="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-sm text-gray-700 dark:text-gray-300 rounded-xl transition-colors font-medium"
           @click="copyQris"
@@ -140,6 +177,7 @@
 <script setup lang="ts">
 import QRCode from 'qrcode'
 import type { QrisLocation } from '~/types'
+import { parseQris } from '~/utils/parseQris'
 
 const props = defineProps<{ location: QrisLocation }>()
 const emit = defineEmits<{
@@ -158,6 +196,7 @@ const deleteConfirmText = ref('')
 const deleting = ref(false)
 const deleteError = ref('')
 
+const qrisInfo = computed(() => parseQris(props.location.qris))
 const canConfirmDelete = computed(() => deleteConfirmText.value === 'DELETE QRIS')
 
 function cancelDelete() {

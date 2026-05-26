@@ -56,20 +56,79 @@
             >
               <p
                 v-if="qrisReplaced"
-                class="text-xs font-medium text-green-700 dark:text-green-400 mb-1"
+                class="text-xs font-medium text-green-700 dark:text-green-400 mb-2"
               >
                 New QRIS captured
               </p>
-              <p
-                class="text-xs font-mono break-all line-clamp-3"
-                :class="
-                  qrisReplaced
-                    ? 'text-green-600 dark:text-green-300'
-                    : 'text-gray-500 dark:text-gray-400'
-                "
-              >
-                {{ form.qris }}
-              </p>
+              <template v-if="parsedQris">
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                  <div>
+                    <span class="text-gray-400 dark:text-gray-500">Merchant</span>
+                    <p
+                      class="font-medium truncate"
+                      :class="
+                        qrisReplaced
+                          ? 'text-green-700 dark:text-green-300'
+                          : 'text-gray-700 dark:text-gray-300'
+                      "
+                      :title="parsedQris.merchantName"
+                    >
+                      {{ parsedQris.merchantName || '—' }}
+                    </p>
+                  </div>
+                  <div>
+                    <span class="text-gray-400 dark:text-gray-500">Bank</span>
+                    <p
+                      class="font-medium truncate"
+                      :class="
+                        qrisReplaced
+                          ? 'text-green-700 dark:text-green-300'
+                          : 'text-gray-700 dark:text-gray-300'
+                      "
+                      :title="parsedQris.bank"
+                    >
+                      {{ parsedQris.bank || '—' }}
+                    </p>
+                  </div>
+                  <div>
+                    <span class="text-gray-400 dark:text-gray-500">Merchant ID</span>
+                    <p
+                      class="font-mono truncate"
+                      :class="
+                        qrisReplaced
+                          ? 'text-green-700 dark:text-green-300'
+                          : 'text-gray-700 dark:text-gray-300'
+                      "
+                      :title="parsedQris.merchantId"
+                    >
+                      {{ parsedQris.merchantId || '—' }}
+                    </p>
+                  </div>
+                  <div>
+                    <span class="text-gray-400 dark:text-gray-500">Kota / City</span>
+                    <p
+                      class="font-medium truncate"
+                      :class="
+                        qrisReplaced
+                          ? 'text-green-700 dark:text-green-300'
+                          : 'text-gray-700 dark:text-gray-300'
+                      "
+                      :title="parsedQris.city"
+                    >
+                      {{ parsedQris.city || '—' }}
+                    </p>
+                  </div>
+                </div>
+              </template>
+              <template v-else>
+                <div class="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400">
+                  <Icon name="material-symbols:warning-outline" class="w-4 h-4 shrink-0" />
+                  <span
+                    >QRIS tidak valid — silakan ganti. /
+                    <em>Invalid QRIS, please replace.</em></span
+                  >
+                </div>
+              </template>
             </div>
             <button
               type="button"
@@ -125,6 +184,7 @@
 
 <script setup lang="ts">
 import type { QrisLocation } from '~/types'
+import { parseQris } from '~/utils/parseQris'
 
 const props = defineProps<{ location: QrisLocation }>()
 const emit = defineEmits<{
@@ -154,6 +214,7 @@ const form = reactive({
   } as { lat: number; lng: number } | null,
 })
 
+const parsedQris = computed(() => parseQris(form.qris))
 const canSubmit = computed(() => !!form.name.trim() && !!form.qris.trim() && !!form.location)
 
 async function submit() {
