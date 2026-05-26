@@ -9,7 +9,15 @@
     ]"
     @click="$emit('click')"
   >
-    <p class="font-medium text-gray-900 dark:text-gray-100 truncate">{{ location.name }}</p>
+    <div class="flex items-center gap-1.5 min-w-0">
+      <p class="font-medium text-gray-900 dark:text-gray-100 truncate">{{ location.name }}</p>
+      <Icon
+        v-if="location._pending"
+        name="material-symbols:schedule"
+        class="text-xs text-amber-500 dark:text-amber-400 shrink-0"
+        title="Pending sync"
+      />
+    </div>
     <p
       v-if="location.description"
       class="text-sm text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2"
@@ -23,10 +31,10 @@
 </template>
 
 <script setup lang="ts">
-import type { QrisLocation } from '~/types'
+import type { LocalLocation } from '~/utils/db'
 
 defineProps<{
-  location: QrisLocation
+  location: LocalLocation
   selected?: boolean
 }>()
 
