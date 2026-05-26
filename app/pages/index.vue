@@ -35,6 +35,15 @@
       :class="activeTab === 'list' ? 'flex' : 'hidden md:flex'"
       class="flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shrink-0 w-full md:w-96"
     >
+      <!-- Offline banner -->
+      <div
+        v-if="!isOnline"
+        class="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-400 text-xs"
+      >
+        <Icon name="material-symbols:wifi-off" class="shrink-0 text-base" />
+        <span>You're offline — changes will sync when reconnected</span>
+      </div>
+
       <div class="p-4 border-b border-gray-100 dark:border-gray-700">
         <!-- Title + controls row -->
         <div class="flex items-start justify-between gap-2 mb-3">
@@ -52,6 +61,21 @@
             </div>
           </div>
           <div class="flex items-center gap-1 shrink-0">
+            <!-- Pending sync indicator -->
+            <div
+              v-if="pendingCount > 0 || syncing"
+              class="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400"
+              :title="syncing ? 'Syncing...' : `${pendingCount} change(s) pending sync`"
+            >
+              <Icon
+                :name="syncing ? 'material-symbols:sync' : 'material-symbols:cloud-off'"
+                class="text-sm w-3.5 h-3.5"
+                :class="{ 'animate-spin': syncing }"
+              />
+              <span v-if="!syncing && pendingCount > 0" class="text-xs font-medium">{{
+                pendingCount
+              }}</span>
+            </div>
             <!-- Install PWA -->
             <button
               v-if="canInstall"
@@ -92,9 +116,15 @@
             <!-- Not signed in -->
             <button
               v-else
-              title="Sign in with Google"
-              class="p-1.5 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:text-blue-400 dark:hover:bg-blue-900/20 transition-colors flex justify-center items-center"
-              @click="showLogin = true"
+              :disabled="!isOnline"
+              :title="isOnline ? 'Sign in with Google' : 'Sign in unavailable offline'"
+              class="p-1.5 rounded-lg transition-colors flex justify-center items-center"
+              :class="
+                isOnline
+                  ? 'text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:text-blue-400 dark:hover:bg-blue-900/20'
+                  : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+              "
+              @click="isOnline && (showLogin = true)"
             >
               <Icon name="material-symbols:login" class="text-xl w-5 h-5" />
             </button>
@@ -228,6 +258,8 @@ const { locations, pending } = useLocations()
 const { user, fetchUser, login, logout } = useAuth()
 const { isDark, toggle: toggleTheme, init: initTheme } = useTheme()
 const { canInstall, install: installPwa } = useInstallPwa()
+const { isOnline } = useNetworkStatus()
+const { pendingCount, syncing } = useSync()
 
 const search = ref('')
 const selectedId = ref<string | null>(null)

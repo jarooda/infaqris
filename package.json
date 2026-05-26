@@ -30,6 +30,7 @@
     "google-auth-library": "^10.6.2",
     "googleapis": "^172.0.0",
     "html5-qrcode": "^2.3.8",
+    "idb": "^8.0.3",
     "jalutils": "^1.0.1",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",

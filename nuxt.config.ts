@@ -41,6 +41,24 @@ export default defineNuxtConfig({
     workbox: {
       navigateFallback: '/',
       globPatterns: ['**/*.{js,css,html,png,svg,ico,webmanifest}'],
+      runtimeCaching: [
+        {
+          urlPattern: /^https:\/\/infaqris\.jaluwibowo\.id\/api\/locations$/,
+          handler: 'StaleWhileRevalidate',
+          options: {
+            cacheName: 'api-locations',
+            expiration: { maxEntries: 1, maxAgeSeconds: 60 * 60 * 24 * 7 },
+          },
+        },
+        {
+          urlPattern: /^https:\/\/[a-z]\.basemaps\.cartocdn\.com\/.*/,
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'map-tiles',
+            expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
+          },
+        },
+      ],
     },
     devOptions: {
       enabled: true,
