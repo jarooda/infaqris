@@ -33,8 +33,7 @@
     <!-- Left panel -->
     <div
       :class="activeTab === 'list' ? 'flex' : 'hidden md:flex'"
-      class="flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shrink-0 w-full md:w-96"
-    >
+class="flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shrink-0 w-full md:w-96 overflow-hidden h-full"
       <!-- Offline banner -->
       <div
         v-if="!isOnline"
