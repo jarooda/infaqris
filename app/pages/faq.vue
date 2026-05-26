@@ -110,6 +110,13 @@ const faqs: FaqItem[] = [
       <em class="text-gray-500 dark:text-gray-400"> / Open the map, find a nearby QRIS location, click to view the QR code, then scan to donate. To add or edit entries, sign in with your Google account first.</em>`,
   },
   {
+    id: 'qr-validity',
+    question:
+      'Apakah kode QR yang ada di aplikasi sudah pasti valid? <em class="font-normal text-gray-500 dark:text-gray-400">/ Is the QR code in the app guaranteed to be valid?</em>',
+    answer: `Tidak ada jaminan — data dikontribusikan oleh pengguna dan bisa saja sudah kedaluwarsa atau tidak akurat. Sebelum mengirim donasi, selalu periksa nama yang tertera pada kode QR dan pastikan nama tersebut sesuai dengan nama masjid atau mushola yang dituju. Jika ragu, tanyakan langsung kepada pengurus setempat.
+      <em class="text-gray-500 dark:text-gray-400"> / There is no guarantee — data is user-contributed and may be outdated or inaccurate. Before sending any donation, always check the name displayed on the QR code and make sure it matches the mosque or prayer room you intend to donate to. If in doubt, ask the local administrator directly.</em>`,
+  },
+  {
     id: 'why-login',
     question:
       'Kenapa harus login? <em class="font-normal text-gray-500 dark:text-gray-400">/ Why do I need to login?</em>',
