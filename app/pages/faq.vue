@@ -106,15 +106,15 @@ const faqs: FaqItem[] = [
     id: 'how-to-use',
     question:
       'Bagaimana cara menggunakannya? <em class="font-normal text-gray-500 dark:text-gray-400">/ How do I use this?</em>',
-    answer: `Buka peta, temukan titik QRIS terdekat, klik untuk melihat kode QR, lalu scan untuk berdonasi. Untuk menambah atau mengedit data, login dengan akun Google terlebih dahulu.
-      <em class="text-gray-500 dark:text-gray-400"> / Open the map, find a nearby QRIS location, click to view the QR code, then scan to donate. To add or edit entries, sign in with your Google account first.</em>`,
+    answer: `Buka peta, temukan titik QRIS terdekat, klik untuk melihat kode QR, lalu scan untuk berdonasi. Gunakan tombol sort di panel kiri untuk mengurutkan berdasarkan <strong>jarak terdekat</strong> dari posisi Anda. Untuk menambah data, login dengan akun Google terlebih dahulu.
+      <em class="text-gray-500 dark:text-gray-400"> / Open the map, find a nearby QRIS location, click to view the QR code, then scan to donate. Use the sort button in the left panel to order by <strong>nearest first</strong>. To add entries, sign in with your Google account first.</em>`,
   },
   {
     id: 'qr-validity',
     question:
-      'Apakah kode QR yang ada di aplikasi sudah pasti valid? <em class="font-normal text-gray-500 dark:text-gray-400">/ Is the QR code in the app guaranteed to be valid?</em>',
-    answer: `Tidak ada jaminan — data dikontribusikan oleh pengguna dan bisa saja sudah kedaluwarsa atau tidak akurat. Sebelum mengirim donasi, selalu periksa nama yang tertera pada kode QR dan pastikan nama tersebut sesuai dengan nama masjid atau mushola yang dituju. Jika ragu, tanyakan langsung kepada pengurus setempat.
-      <em class="text-gray-500 dark:text-gray-400"> / There is no guarantee — data is user-contributed and may be outdated or inaccurate. Before sending any donation, always check the name displayed on the QR code and make sure it matches the mosque or prayer room you intend to donate to. If in doubt, ask the local administrator directly.</em>`,
+      'Seberapa terpercaya kode QR di aplikasi ini? <em class="font-normal text-gray-500 dark:text-gray-400">/ How trustworthy are the QR codes in this app?</em>',
+    answer: `Kami menyediakan beberapa lapisan untuk membantu Anda memverifikasi sebelum berdonasi. Pertama, info QRIS otomatis — setiap entri menampilkan nama merchant, bank penerbit, merchant ID, dan kota yang terdaftar; cocokkan dengan nama masjid atau mushola yang dituju. Kedua, moderasi admin — kiriman dari pengguna biasa masuk ke antrian tinjauan dan baru muncul di peta setelah disetujui. Ketiga, akuntabilitas kontributor — setiap entri mencatat siapa yang menambahkan dan kapan. Meski demikian, kami tidak dapat menjamin keakuratan mutlak karena data bersifat crowdsource dan kode QR fisik bisa berubah setelah dimasukkan. Sebelum berdonasi, selalu periksa nama merchant yang tertera dan pastikan sesuai. Jika ragu, tanyakan langsung kepada pengurus setempat.
+      <em class="text-gray-500 dark:text-gray-400"> / We provide several layers to help you verify before donating. First, automatic QRIS info — every entry shows the registered merchant name, issuing bank, merchant ID, and city; cross-check this against the mosque or prayer room you intend to donate to. Second, admin moderation — submissions from regular users enter a review queue and only appear on the map once approved. Third, contributor accountability — every entry records who added it and when. That said, we cannot guarantee absolute accuracy since data is crowdsourced and physical QR codes may change after submission. Always check the merchant name shown before donating. If in doubt, ask the local mosque administrator directly.</em>`,
   },
   {
     id: 'why-login',
@@ -148,8 +148,22 @@ const faqs: FaqItem[] = [
     id: 'contribute',
     question:
       'Bagaimana cara menambah lokasi QRIS yang belum ada di peta? <em class="font-normal text-gray-500 dark:text-gray-400">/ How do I add a missing QRIS location?</em>',
-    answer: `Login dengan akun Google, lalu klik tombol "+" di pojok kanan bawah peta. Ikuti langkah-langkahnya: scan kode QR → isi nama dan deskripsi → tandai lokasi di peta → simpan.
-      <em class="text-gray-500 dark:text-gray-400"> / Sign in with Google, then tap the "+" button at the bottom-right of the map. Follow the steps: scan the QR code → enter name and description → pin the location on the map → save.</em>`,
+    answer: `Login dengan akun Google, lalu klik tombol "+" di pojok kanan bawah peta. Ikuti langkah-langkahnya: scan kode QR → isi nama dan deskripsi → tandai lokasi di peta → simpan. Kiriman Anda akan masuk ke antrian moderasi dan muncul di peta setelah disetujui oleh admin.
+      <em class="text-gray-500 dark:text-gray-400"> / Sign in with Google, then tap the "+" button at the bottom-right of the map. Follow the steps: scan the QR code → enter name and description → pin the location on the map → save. Your submission will enter a moderation queue and appear on the map once approved by an admin.</em>`,
+  },
+  {
+    id: 'moderation',
+    question:
+      'Bagaimana proses moderasi kiriman baru? <em class="font-normal text-gray-500 dark:text-gray-400">/ How does moderation work for new submissions?</em>',
+    answer: `Setiap kiriman dari pengguna biasa tidak langsung muncul di peta — kiriman masuk ke status pending dan ditinjau oleh admin terlebih dahulu. Jika disetujui, entri langsung tampil di peta untuk semua pengguna. Selama menunggu, Anda dapat melihat kiriman sendiri dengan label "Menunggu persetujuan admin". Proses ini menjaga kualitas data dan mencegah penyalahgunaan.
+      <em class="text-gray-500 dark:text-gray-400"> / Every submission from a regular user doesn't go live immediately — it enters a pending state and is reviewed by an admin first. Once approved, the entry appears on the map for all users. While waiting, you can see your own submission labeled "Pending admin approval". This process maintains data quality and prevents misuse.</em>`,
+  },
+  {
+    id: 'offline',
+    question:
+      'Bisakah saya menggunakan aplikasi ini saat offline? <em class="font-normal text-gray-500 dark:text-gray-400">/ Can I use the app offline?</em>',
+    answer: `Ya! InfaQRIS adalah Progressive Web App (PWA) yang mendukung penggunaan offline. Data lokasi yang sudah dimuat sebelumnya tetap dapat diakses tanpa koneksi internet, termasuk melihat kode QR dan mencari lokasi. Anda juga dapat menambah atau mengedit data saat offline — perubahan tersimpan di perangkat dan otomatis dikirim ke server saat koneksi kembali. Ubin peta pada area yang pernah dikunjungi juga tersedia secara offline.
+      <em class="text-gray-500 dark:text-gray-400"> / Yes! InfaQRIS is a Progressive Web App (PWA) with offline support. Previously loaded location data remains accessible without an internet connection — including viewing QR codes and searching locations. You can also add or edit entries while offline; changes are saved on your device and automatically synced to the server when connectivity returns. Map tiles for previously visited areas are also available offline.</em>`,
   },
   {
     id: 'contribute-platform',
