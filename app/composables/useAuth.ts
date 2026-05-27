@@ -1,5 +1,5 @@
 export const useAuth = () => {
-  const user = useState<{ email: string } | null>('auth_user', () => null)
+  const user = useState<{ email: string; isAdmin: boolean } | null>('auth_user', () => null)
   // Non-httpOnly cookie set by the server on login; lets us skip /api/auth/me
   // entirely when unauthenticated, avoiding a noisy 401 in the console.
   const authHint = useCookie('auth_hint')
@@ -7,7 +7,7 @@ export const useAuth = () => {
   async function fetchUser() {
     if (!authHint.value) return
     try {
-      const data = await $fetch<{ email: string }>('/api/auth/me')
+      const data = await $fetch<{ email: string; isAdmin: boolean }>('/api/auth/me')
       user.value = data
     } catch {
       user.value = null
@@ -16,11 +16,11 @@ export const useAuth = () => {
   }
 
   async function login(credential: string) {
-    const data = await $fetch<{ email: string }>('/api/auth/login', {
+    const data = await $fetch<{ email: string; isAdmin: boolean }>('/api/auth/login', {
       method: 'POST',
       body: { credential },
     })
-    user.value = { email: data.email }
+    user.value = { email: data.email, isAdmin: data.isAdmin }
     authHint.value = '1' // mirror server Set-Cookie for immediate reactivity
   }
 
@@ -30,5 +30,7 @@ export const useAuth = () => {
     authHint.value = null
   }
 
-  return { user, fetchUser, login, logout }
+  const isAdmin = computed(() => user.value?.isAdmin === true)
+
+  return { user, isAdmin, fetchUser, login, logout }
 }

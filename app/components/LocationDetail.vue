@@ -10,9 +10,15 @@
           <p v-if="location.description" class="text-sm text-gray-500 dark:text-gray-400 mt-1">
             {{ location.description }}
           </p>
-          <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          <a
+            :href="`https://www.google.com/maps?q=${location.latitude},${location.longitude}`"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-xs text-gray-400 dark:text-gray-500 mt-1 hover:text-blue-500 dark:hover:text-blue-400 transition-colors inline-flex items-center gap-1"
+          >
+            <Icon name="material-symbols:location-on-outline" class="w-3 h-3 shrink-0" />
             {{ location.latitude.toFixed(6) }}, {{ location.longitude.toFixed(6) }}
-          </p>
+          </a>
         </div>
         <button
           class="ml-3 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -22,45 +28,65 @@
         </button>
       </div>
 
-      <!-- QR Code -->
-      <div class="flex flex-col items-center py-4 bg-gray-50 dark:bg-gray-900">
+      <!-- Pending approval banner -->
+      <div
+        v-if="isPending"
+        class="flex items-center gap-2 px-5 py-3 bg-amber-50 dark:bg-amber-900/20 border-y border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-400 text-sm"
+      >
+        <Icon name="material-symbols:schedule" class="w-4 h-4 shrink-0" />
+        <span>
+          Menunggu persetujuan admin.<br class="sm:hidden" />
+          <em class="not-italic text-amber-600 dark:text-amber-500">Pending admin approval.</em>
+        </span>
+      </div>
+
+      <!-- QR Code (hidden for pending entries) -->
+      <div v-if="!isPending" class="flex flex-col items-center py-4 bg-gray-50 dark:bg-gray-900">
         <canvas ref="qrCanvas" class="rounded-lg" />
       </div>
 
-      <!-- QRIS Info -->
+      <!-- QRIS Info (always shown when qris data is present) -->
       <div class="p-4 pt-3 space-y-2">
-        <div v-if="qrisInfo" class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
-          <div>
-            <span class="text-gray-400 dark:text-gray-500">Merchant</span>
-            <p
-              class="text-gray-700 dark:text-gray-300 font-medium truncate"
-              :title="qrisInfo.merchantName"
-            >
-              {{ qrisInfo.merchantName || '—' }}
-            </p>
+        <template v-if="qrisInfo">
+          <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+            <div>
+              <span class="text-gray-400 dark:text-gray-500">Merchant</span>
+              <p
+                class="text-gray-700 dark:text-gray-300 font-medium truncate"
+                :title="qrisInfo.merchantName"
+              >
+                {{ qrisInfo.merchantName || '—' }}
+              </p>
+            </div>
+            <div>
+              <span class="text-gray-400 dark:text-gray-500">Bank</span>
+              <p
+                class="text-gray-700 dark:text-gray-300 font-medium truncate"
+                :title="qrisInfo.bank"
+              >
+                {{ qrisInfo.bank || '—' }}
+              </p>
+            </div>
+            <div>
+              <span class="text-gray-400 dark:text-gray-500">Merchant ID</span>
+              <p
+                class="text-gray-700 dark:text-gray-300 font-mono truncate"
+                :title="qrisInfo.merchantId"
+              >
+                {{ qrisInfo.merchantId || '—' }}
+              </p>
+            </div>
+            <div>
+              <span class="text-gray-400 dark:text-gray-500">Kota / City</span>
+              <p
+                class="text-gray-700 dark:text-gray-300 font-medium truncate"
+                :title="qrisInfo.city"
+              >
+                {{ qrisInfo.city || '—' }}
+              </p>
+            </div>
           </div>
-          <div>
-            <span class="text-gray-400 dark:text-gray-500">Bank</span>
-            <p class="text-gray-700 dark:text-gray-300 font-medium truncate" :title="qrisInfo.bank">
-              {{ qrisInfo.bank || '—' }}
-            </p>
-          </div>
-          <div>
-            <span class="text-gray-400 dark:text-gray-500">Merchant ID</span>
-            <p
-              class="text-gray-700 dark:text-gray-300 font-mono truncate"
-              :title="qrisInfo.merchantId"
-            >
-              {{ qrisInfo.merchantId || '—' }}
-            </p>
-          </div>
-          <div>
-            <span class="text-gray-400 dark:text-gray-500">Kota / City</span>
-            <p class="text-gray-700 dark:text-gray-300 font-medium truncate" :title="qrisInfo.city">
-              {{ qrisInfo.city || '—' }}
-            </p>
-          </div>
-        </div>
+        </template>
         <div
           v-else
           class="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-3 py-2"
@@ -72,14 +98,15 @@
           >
         </div>
         <button
+          v-if="!isPending"
           class="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-sm text-gray-700 dark:text-gray-300 rounded-xl transition-colors font-medium"
           @click="copyQris"
         >
           {{ copied ? 'Copied!' : 'Copy QRIS String' }}
         </button>
 
-        <!-- Edit & Delete: only for authenticated users -->
-        <div v-if="user" class="flex gap-2 pt-1">
+        <!-- Edit & Delete: only for admins -->
+        <div v-if="isAdmin" class="flex gap-2 pt-1">
           <button
             class="flex-1 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl transition-colors"
             @click="$emit('edit', location)"
@@ -186,7 +213,7 @@ const emit = defineEmits<{
   deleted: []
 }>()
 
-const { user } = useAuth()
+const { isAdmin } = useAuth()
 const { deleteLocation } = useLocations()
 const { show: showToast } = useToast()
 const qrCanvas = ref<HTMLCanvasElement | null>(null)
@@ -196,6 +223,7 @@ const deleteConfirmText = ref('')
 const deleting = ref(false)
 const deleteError = ref('')
 
+const isPending = computed(() => props.location.status === '2')
 const qrisInfo = computed(() => parseQris(props.location.qris))
 const canConfirmDelete = computed(() => deleteConfirmText.value === 'DELETE QRIS')
 

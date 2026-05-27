@@ -10,7 +10,7 @@ import {
 
 // Module-level shared state — all composable calls share the same refs
 const locations = ref<LocalLocation[]>([])
-const pending = ref(false)
+const pending = ref(true)
 let _loaded = false
 
 async function loadFromCache() {
