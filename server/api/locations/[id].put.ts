@@ -1,5 +1,5 @@
 import { isNumber } from 'jalutils/type'
-import { updateLocation } from '../../utils/sheets'
+import { getLocations, updateLocation } from '../../utils/sheets'
 import { requireAdmin } from '../../utils/admin'
 
 export default defineEventHandler(async (event) => {
@@ -15,6 +15,11 @@ export default defineEventHandler(async (event) => {
   if (!isNumber(body.latitude) || !isNumber(body.longitude))
     throw createError({ statusCode: 400, message: 'Valid location is required' })
 
+  // If the entry is pending (status 2), promote it to active (status 1) on admin edit
+  const all = await getLocations()
+  const current = all.find((l) => l.id === id)
+  const newStatus = current?.status === '2' ? '1' : undefined
+
   return await updateLocation(
     id,
     {
@@ -25,5 +30,6 @@ export default defineEventHandler(async (event) => {
       qris: body.qris.trim(),
     },
     email,
+    newStatus,
   )
 })

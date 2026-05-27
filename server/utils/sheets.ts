@@ -122,6 +122,7 @@ export async function updateLocation(
     qris: string
   },
   latestEditor: string,
+  status?: string,
 ) {
   const sheets = getSheets()
   const rowIdx = await findRowIndex(id)
@@ -129,22 +130,31 @@ export async function updateLocation(
   const now = new Date().toISOString()
 
   // Only update the changed fields; preserve created_at (G) and creator (I)
+  const ranges: { range: string; values: unknown[][] }[] = [
+    {
+      range: `B${sheetRow}:F${sheetRow}`,
+      values: [[data.name, data.description, data.latitude, data.longitude, data.qris]],
+    },
+    { range: `H${sheetRow}`, values: [[now]] },
+    { range: `J${sheetRow}`, values: [[latestEditor]] },
+  ]
+
+  if (status !== undefined) {
+    ranges.push({ range: `K${sheetRow}`, values: [[status]] })
+  }
+
   await sheets.spreadsheets.values.batchUpdate({
     spreadsheetId: spreadsheetId(),
-    requestBody: {
-      valueInputOption: 'RAW',
-      data: [
-        {
-          range: `B${sheetRow}:F${sheetRow}`,
-          values: [[data.name, data.description, data.latitude, data.longitude, data.qris]],
-        },
-        { range: `H${sheetRow}`, values: [[now]] },
-        { range: `J${sheetRow}`, values: [[latestEditor]] },
-      ],
-    },
+    requestBody: { valueInputOption: 'RAW', data: ranges },
   })
 
-  return { id, ...data, modified_at: now, latest_editor: latestEditor }
+  return {
+    id,
+    ...data,
+    modified_at: now,
+    latest_editor: latestEditor,
+    ...(status !== undefined ? { status } : {}),
+  }
 }
 
 export async function softDeleteLocation(id: string, latestEditor: string) {
