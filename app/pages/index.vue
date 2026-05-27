@@ -138,12 +138,12 @@
             placeholder="Search by name or description..."
             class="flex-1 border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <div v-if="userCenter" class="relative" data-sort-menu>
+          <div class="relative" data-sort-menu>
             <button
               :title="`Sort: ${sortLabel}`"
               class="p-2 rounded-xl border transition-colors flex items-center justify-center"
               :class="
-                sortBy === 'distance'
+                sortBy !== 'default'
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                   : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               "
@@ -157,6 +157,7 @@
             >
               <button
                 v-for="opt in sortOptions"
+                v-show="opt.value !== 'distance' || userCenter"
                 :key="opt.value"
                 class="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left transition-colors"
                 :class="
@@ -312,12 +313,13 @@ const showLogin = ref(false)
 const mapViewRef = ref<{ invalidateSize: () => void } | null>(null)
 const year = new Date().getFullYear()
 
-type SortBy = 'default' | 'distance'
+type SortBy = 'default' | 'alpha' | 'distance'
 const sortBy = ref<SortBy>('default')
 const showSortMenu = ref(false)
 
 const sortOptions: { value: SortBy; label: string; icon: string }[] = [
   { value: 'default', label: 'Default', icon: 'material-symbols:format-list-numbered' },
+  { value: 'alpha', label: 'Alphabetical', icon: 'material-symbols:sort-by-alpha' },
   { value: 'distance', label: 'Nearest first', icon: 'material-symbols:near-me' },
 ]
 
@@ -386,7 +388,9 @@ const filtered = computed(() => {
       (loc) => loc.name.toLowerCase().includes(q) || loc.description.toLowerCase().includes(q),
     )
   }
-  if (sortBy.value === 'distance' && userCenter.value) {
+  if (sortBy.value === 'alpha') {
+    list = [...list].sort((a, b) => a.name.localeCompare(b.name))
+  } else if (sortBy.value === 'distance' && userCenter.value) {
     const { lat, lng } = userCenter.value
     list = [...list].sort(
       (a, b) =>
