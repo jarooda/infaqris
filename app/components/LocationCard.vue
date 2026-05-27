@@ -35,6 +35,9 @@
     </p>
     <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
       {{ location.latitude.toFixed(5) }}, {{ location.longitude.toFixed(5) }}
+      <span v-if="distanceLabel" class="text-gray-400 dark:text-gray-500">
+        · {{ distanceLabel }}</span
+      >
     </p>
   </button>
 </template>
@@ -42,10 +45,26 @@
 <script setup lang="ts">
 import type { LocalLocation } from '~/utils/db'
 
-defineProps<{
+const props = defineProps<{
   location: LocalLocation
   selected?: boolean
+  userCenter?: { lat: number; lng: number } | null
 }>()
 
 defineEmits<{ click: [] }>()
+
+const distanceLabel = computed(() => {
+  if (!props.userCenter) return null
+  const { lat, lng } = props.userCenter
+  const R = 6371
+  const dLat = ((props.location.latitude - lat) * Math.PI) / 180
+  const dLng = ((props.location.longitude - lng) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat * Math.PI) / 180) *
+      Math.cos((props.location.latitude * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2
+  const km = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return km < 1 ? `${Math.round(km * 1000)} m away` : `${km.toFixed(1)} km away`
+})
 </script>

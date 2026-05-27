@@ -131,12 +131,52 @@
           </div>
         </div>
 
-        <input
-          v-model="search"
-          type="text"
-          placeholder="Search by name or description..."
-          class="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <div class="flex items-center gap-2">
+          <input
+            v-model="search"
+            type="text"
+            placeholder="Search by name or description..."
+            class="flex-1 border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <div v-if="userCenter" class="relative" data-sort-menu>
+            <button
+              :title="`Sort: ${sortLabel}`"
+              class="p-2 rounded-xl border transition-colors flex items-center justify-center"
+              :class="
+                sortBy === 'distance'
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                  : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+              "
+              @click="showSortMenu = !showSortMenu"
+            >
+              <Icon name="material-symbols:sort" class="text-lg w-5 h-5" />
+            </button>
+            <div
+              v-if="showSortMenu"
+              class="absolute right-0 top-full mt-1 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-50 overflow-hidden"
+            >
+              <button
+                v-for="opt in sortOptions"
+                :key="opt.value"
+                class="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left transition-colors"
+                :class="
+                  sortBy === opt.value
+                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                "
+                @click="sortOptionClicked(opt)"
+              >
+                <Icon :name="opt.icon" class="text-base w-4 h-4 shrink-0" />
+                {{ opt.label }}
+                <Icon
+                  v-if="sortBy === opt.value"
+                  name="material-symbols:check"
+                  class="ml-auto text-base w-4 h-4"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="flex-1 min-h-0 overflow-y-auto p-3 space-y-2">
@@ -154,6 +194,7 @@
             :key="loc.id"
             :location="loc"
             :selected="selectedId === loc.id"
+            :user-center="userCenter"
             @click="selectLocation(loc)"
           />
         </template>
@@ -271,6 +312,34 @@ const showLogin = ref(false)
 const mapViewRef = ref<{ invalidateSize: () => void } | null>(null)
 const year = new Date().getFullYear()
 
+type SortBy = 'default' | 'distance'
+const sortBy = ref<SortBy>('default')
+const showSortMenu = ref(false)
+
+const sortOptions: { value: SortBy; label: string; icon: string }[] = [
+  { value: 'default', label: 'Default', icon: 'material-symbols:format-list-numbered' },
+  { value: 'distance', label: 'Nearest first', icon: 'material-symbols:near-me' },
+]
+
+function sortOptionClicked(opt: (typeof sortOptions)[number]) {
+  sortBy.value = opt.value
+  showSortMenu.value = false
+}
+
+const sortLabel = computed(
+  () => sortOptions.find((o) => o.value === sortBy.value)?.label ?? 'Default',
+)
+
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLng = ((lng2 - lng1) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
 const { origin } = useRequestURL()
 
 useSeoMeta({
@@ -311,10 +380,21 @@ watch(selectedId, async (id) => {
 
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase()
-  if (!q) return locations.value ?? []
-  return (locations.value ?? []).filter(
-    (loc) => loc.name.toLowerCase().includes(q) || loc.description.toLowerCase().includes(q),
-  )
+  let list = locations.value ?? []
+  if (q) {
+    list = list.filter(
+      (loc) => loc.name.toLowerCase().includes(q) || loc.description.toLowerCase().includes(q),
+    )
+  }
+  if (sortBy.value === 'distance' && userCenter.value) {
+    const { lat, lng } = userCenter.value
+    list = [...list].sort(
+      (a, b) =>
+        haversineKm(lat, lng, a.latitude, a.longitude) -
+        haversineKm(lat, lng, b.latitude, b.longitude),
+    )
+  }
+  return list
 })
 
 const selected = computed(() =>
@@ -392,6 +472,11 @@ onMounted(async () => {
   initTheme()
   await fetchUser()
   initGsi()
+  document.addEventListener('click', (e) => {
+    if (showSortMenu.value && !(e.target as Element)?.closest?.('[data-sort-menu]')) {
+      showSortMenu.value = false
+    }
+  })
 
   const id = route.query.id as string | undefined
   if (id) selectedId.value = id
