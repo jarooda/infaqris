@@ -62,18 +62,24 @@
       </div>
     </div>
 
-    <div class="flex items-center justify-between text-sm">
+    <div class="flex flex-col gap-2 items-center justify-between text-sm">
       <span v-if="modelValue" class="text-gray-600 dark:text-gray-400">
         {{ modelValue.lat.toFixed(6) }}, {{ modelValue.lng.toFixed(6) }}
       </span>
       <span v-else class="text-gray-400 dark:text-gray-500">Click on the map to set location</span>
       <button
+        v-if="geolocationAvailable"
         type="button"
-        class="flex items-center gap-1 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+        :disabled="locating"
+        class="flex items-center gap-1 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         @click="useMyLocation"
       >
-        <Icon name="material-symbols:my-location" class="text-base" />
-        Use my location
+        <Icon
+          :name="locating ? 'material-symbols:progress-activity' : 'material-symbols:my-location'"
+          class="text-base"
+          :class="{ 'animate-spin': locating }"
+        />
+        {{ locating ? 'Locating…' : 'Use my location' }}
       </button>
     </div>
   </div>
@@ -174,6 +180,44 @@ function onDocumentClick(e: MouseEvent) {
   }
 }
 
+// ─── Geolocation ──────────────────────────────────────────────────────────────
+const geolocationAvailable = ref(false)
+const locating = ref(false)
+
+async function checkGeolocation() {
+  if (!('geolocation' in navigator)) return
+  try {
+    const status = await navigator.permissions.query({ name: 'geolocation' })
+    geolocationAvailable.value = status.state !== 'denied'
+    // React to permission changes (e.g. user revokes in browser settings)
+    status.addEventListener('change', () => {
+      geolocationAvailable.value = status.state !== 'denied'
+    })
+  } catch {
+    // Permissions API not supported — assume available and let the prompt decide
+    geolocationAvailable.value = true
+  }
+}
+
+function useMyLocation() {
+  if (!navigator.geolocation || !map) return
+  locating.value = true
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      locating.value = false
+      const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude }
+      map!.setView([loc.lat, loc.lng], 16)
+      placeMarker(loc)
+      emit('update:modelValue', loc)
+    },
+    (err) => {
+      locating.value = false
+      if (err.code === err.PERMISSION_DENIED) geolocationAvailable.value = false
+    },
+    { enableHighAccuracy: true, timeout: 10_000 },
+  )
+}
+
 // ─── Map helpers ──────────────────────────────────────────────────────────────
 function pinIcon(): DivIcon {
   const el = document.createElement('div')
@@ -235,6 +279,7 @@ onMounted(async () => {
   })
 
   document.addEventListener('click', onDocumentClick)
+  checkGeolocation()
 })
 
 onUnmounted(() => {
