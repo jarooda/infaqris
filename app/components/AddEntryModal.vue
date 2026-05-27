@@ -46,6 +46,65 @@
 
         <!-- Step 2: Name + Description -->
         <div v-if="step === 2" class="space-y-4">
+          <!-- Parsed QRIS info -->
+          <div>
+            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">QRIS Info</p>
+            <template v-if="parsedQris">
+              <div
+                class="p-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl"
+              >
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+                  <div>
+                    <span class="text-gray-400 dark:text-gray-500">Merchant</span>
+                    <p
+                      class="text-gray-700 dark:text-gray-300 font-medium truncate"
+                      :title="parsedQris.merchantName"
+                    >
+                      {{ parsedQris.merchantName || '—' }}
+                    </p>
+                  </div>
+                  <div>
+                    <span class="text-gray-400 dark:text-gray-500">Bank</span>
+                    <p
+                      class="text-gray-700 dark:text-gray-300 font-medium truncate"
+                      :title="parsedQris.bank"
+                    >
+                      {{ parsedQris.bank || '—' }}
+                    </p>
+                  </div>
+                  <div>
+                    <span class="text-gray-400 dark:text-gray-500">Merchant ID</span>
+                    <p
+                      class="text-gray-700 dark:text-gray-300 font-mono truncate"
+                      :title="parsedQris.merchantId"
+                    >
+                      {{ parsedQris.merchantId || '—' }}
+                    </p>
+                  </div>
+                  <div>
+                    <span class="text-gray-400 dark:text-gray-500">Kota / City</span>
+                    <p
+                      class="text-gray-700 dark:text-gray-300 font-medium truncate"
+                      :title="parsedQris.city"
+                    >
+                      {{ parsedQris.city || '—' }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </template>
+            <div
+              v-else
+              class="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-xs text-amber-600 dark:text-amber-400"
+            >
+              <Icon name="material-symbols:warning-outline" class="w-4 h-4 shrink-0" />
+              <span>
+                QRIS tidak valid — silakan kembali dan scan ulang. /
+                <em>Invalid QRIS, please go back and rescan.</em>
+              </span>
+            </div>
+          </div>
+
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >Name <span class="text-red-500">*</span></label
@@ -123,6 +182,8 @@
 </template>
 
 <script setup lang="ts">
+import { parseQris } from '~/utils/parseQris'
+
 const props = defineProps<{
   initialCenter?: { lat: number; lng: number } | null
 }>()
@@ -145,6 +206,8 @@ const form = reactive({
   location: null as { lat: number; lng: number } | null,
 })
 
+const parsedQris = computed(() => parseQris(form.qris))
+
 const stepLabel = computed(() => ['Scan QR code', 'Add details', 'Pick location'][step.value - 1])
 
 const canProceed = computed(() => {
@@ -157,6 +220,11 @@ const canSubmit = computed(() => !!form.location)
 
 function onScanned(value: string) {
   form.qris = value
+  // Pre-fill name from merchant name if the field is still empty
+  if (!form.name) {
+    const info = parseQris(value)
+    if (info?.merchantName) form.name = info.merchantName
+  }
   step.value = 2
 }
 

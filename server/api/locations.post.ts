@@ -50,9 +50,10 @@ export default defineEventHandler(async (event) => {
     status,
   })
 
-  // Fire-and-forget notification for non-admin submissions
+  // Await before returning — on Vercel serverless the function is terminated
+  // as soon as the response is sent, so fire-and-forget never completes.
   if (!admin) {
-    sendPendingNotification({
+    await sendPendingNotification({
       id: location.id,
       name: location.name,
       description: location.description,

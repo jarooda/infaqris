@@ -37,6 +37,10 @@ export async function sendPendingNotification(location: PendingLocationPayload):
       <h2 style="margin:0 0 16px">📋 Submission baru</h2>
       <table style="border-collapse:collapse;font-size:14px">
         <tr>
+          <td style="padding:6px 12px 6px 0;color:#666">ID</td>
+          <td style="padding:6px 0"><code style="font-size:12px;background:#f3f4f6;padding:2px 6px;border-radius:4px">${location.id}</code></td>
+        </tr>
+        <tr>
           <td style="padding:6px 12px 6px 0;color:#666;white-space:nowrap">Nama</td>
           <td style="padding:6px 0"><strong>${location.name}</strong></td>
         </tr>
@@ -49,10 +53,6 @@ export async function sendPendingNotification(location: PendingLocationPayload):
           <td style="padding:6px 0">
             <a href="${mapsUrl}" style="color:#2563eb">${location.latitude}, ${location.longitude}</a>
           </td>
-        </tr>
-        <tr>
-          <td style="padding:6px 12px 6px 0;color:#666">ID</td>
-          <td style="padding:6px 0"><code style="font-size:12px;background:#f3f4f6;padding:2px 6px;border-radius:4px">${location.id}</code></td>
         </tr>
         <tr>
           <td style="padding:6px 12px 6px 0;color:#666">Dikirim oleh</td>
