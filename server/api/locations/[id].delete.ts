@@ -1,8 +1,8 @@
 import { softDeleteLocation } from '../../utils/sheets'
-import { requireAuth } from '../../utils/auth'
+import { requireAdmin } from '../../utils/admin'
 
 export default defineEventHandler(async (event) => {
-  const email = requireAuth(event)
+  const email = await requireAdmin(event)
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ statusCode: 400, message: 'ID is required' })
 

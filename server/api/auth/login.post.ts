@@ -1,4 +1,5 @@
 import { OAuth2Client } from 'google-auth-library'
+import { isAdminEmail } from '../../utils/admin'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -31,5 +32,6 @@ export default defineEventHandler(async (event) => {
   // non-httpOnly — client hint to skip the /api/auth/me call when unauthenticated
   setCookie(event, 'auth_hint', '1', { ...cookieOpts, httpOnly: false })
 
-  return { email }
+  const isAdmin = await isAdminEmail(email)
+  return { email, isAdmin }
 })

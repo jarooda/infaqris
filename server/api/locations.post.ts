@@ -1,5 +1,7 @@
 import { addLocation } from '../utils/sheets'
 import { requireAuth } from '../utils/auth'
+import { isAdminEmail } from '../utils/admin'
+import { sendPendingNotification } from '../utils/mailer'
 
 const ipStore = new Map<string, number[]>()
 const LIMIT = 5
@@ -35,12 +37,31 @@ export default defineEventHandler(async (event) => {
   if (typeof body.latitude !== 'number' || typeof body.longitude !== 'number')
     throw createError({ statusCode: 400, message: 'Valid location is required' })
 
-  return await addLocation({
+  const admin = await isAdminEmail(email)
+  const status = admin ? '1' : '2'
+
+  const location = await addLocation({
     name: body.name.trim(),
     description: body.description?.trim() ?? '',
     latitude: body.latitude,
     longitude: body.longitude,
     qris: body.qris.trim(),
     creator: email,
+    status,
   })
+
+  // Fire-and-forget notification for non-admin submissions
+  if (!admin) {
+    sendPendingNotification({
+      id: location.id,
+      name: location.name,
+      description: location.description,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      creator: location.creator,
+      created_at: location.created_at,
+    }).catch((err) => console.error('[mailer] Failed to send notification:', err))
+  }
+
+  return location
 })

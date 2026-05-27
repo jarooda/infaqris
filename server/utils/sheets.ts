@@ -57,7 +57,7 @@ export async function getLocations() {
       latest_editor: row[9] ?? '',
       status: row[10] ?? '1',
     }))
-    .filter((loc) => loc.id && (!loc.status || loc.status === '1'))
+    .filter((loc) => loc.id && loc.status !== '0')
 }
 
 export async function addLocation(data: {
@@ -67,10 +67,12 @@ export async function addLocation(data: {
   longitude: number
   qris: string
   creator: string
+  status?: string
 }) {
   const sheets = getSheets()
   const id = crypto.randomUUID()
   const now = new Date().toISOString()
+  const status = data.status ?? '1'
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: spreadsheetId(),
@@ -89,7 +91,7 @@ export async function addLocation(data: {
           '',
           data.creator,
           '',
-          '1',
+          status,
         ],
       ],
     },
@@ -106,7 +108,7 @@ export async function addLocation(data: {
     modified_at: '',
     creator: data.creator,
     latest_editor: '',
-    status: '1',
+    status,
   }
 }
 

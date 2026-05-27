@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col md:flex-row h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+  <div class="flex flex-col md:flex-row h-dvh overflow-hidden bg-gray-50 dark:bg-gray-900">
     <!-- Tab bar: mobile only -->
     <div
       class="flex md:hidden border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shrink-0"
@@ -33,7 +33,8 @@
     <!-- Left panel -->
     <div
       :class="activeTab === 'list' ? 'flex' : 'hidden md:flex'"
-class="flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shrink-0 w-full md:w-96 overflow-hidden h-full"
+      class="flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-1 min-h-0 md:flex-none md:shrink-0 w-full md:w-96 overflow-hidden"
+    >
       <!-- Offline banner -->
       <div
         v-if="!isOnline"
@@ -197,7 +198,6 @@ class="flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-g
           :locations="locations ?? []"
           :selected-id="selectedId"
           :initial-center="userCenter"
-          :is-dark="isDark"
           @marker-click="selectLocation"
           @center-change="mapCenter = $event"
         />

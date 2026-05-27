@@ -11,12 +11,21 @@
   >
     <div class="flex items-center gap-1.5 min-w-0">
       <p class="font-medium text-gray-900 dark:text-gray-100 truncate">{{ location.name }}</p>
+      <!-- Offline sync pending -->
       <Icon
         v-if="location._pending"
         name="material-symbols:schedule"
         class="text-xs text-amber-500 dark:text-amber-400 shrink-0"
         title="Pending sync"
       />
+      <!-- Moderation pending -->
+      <span
+        v-if="location.status === '2'"
+        class="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 shrink-0 leading-tight"
+        title="Menunggu persetujuan admin / Pending admin approval"
+      >
+        pending
+      </span>
     </div>
     <p
       v-if="location.description"
