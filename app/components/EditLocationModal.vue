@@ -158,7 +158,11 @@
             >Location</label
           >
           <ClientOnly>
-            <LocationPicker v-model="form.location" />
+            <LocationPicker
+              v-model="form.location"
+              :locations="locations"
+              :exclude-id="props.location.id"
+            />
           </ClientOnly>
         </div>
       </div>
@@ -192,7 +196,7 @@ const emit = defineEmits<{
   updated: []
 }>()
 
-const { updateLocation } = useLocations()
+const { updateLocation, locations } = useLocations()
 const { show: showToast } = useToast()
 const saving = ref(false)
 const replacingQr = ref(false)

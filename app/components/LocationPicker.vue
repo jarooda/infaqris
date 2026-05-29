@@ -67,6 +67,20 @@
         {{ modelValue.lat.toFixed(6) }}, {{ modelValue.lng.toFixed(6) }}
       </span>
       <span v-else class="text-gray-400 dark:text-gray-500">Click on the map to set location</span>
+
+      <!-- Duplicate proximity warning -->
+      <div
+        v-if="nearby"
+        class="w-full flex items-start gap-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-3 py-2"
+      >
+        <Icon name="material-symbols:warning-outline" class="w-4 h-4 shrink-0 mt-0.5" />
+        <span>
+          Sudah ada QRIS terdekat: <strong>{{ nearby.location.name }}</strong> (~{{
+            nearby.distance
+          }}m). Pastikan ini bukan duplikat. /
+          <em>A QRIS already exists nearby — make sure this isn't a duplicate.</em>
+        </span>
+      </div>
       <button
         v-if="geolocationAvailable"
         type="button"
@@ -88,13 +102,21 @@
 <script setup lang="ts">
 import { h, render as vRender } from 'vue'
 import type { Map, Marker, DivIcon, TileLayer } from 'leaflet'
+import type { QrisLocation } from '~/types'
 
 const LOCATION_ON_PATH =
   'M13.413 11.413Q14 10.825 14 10t-.587-1.412T12 8t-1.412.588T10 10t.588 1.413T12 12t1.413-.587M12 22q-4.025-3.425-6.012-6.362T4 10.2q0-3.75 2.413-5.975T12 2t5.588 2.225T20 10.2q0 2.5-1.987 5.438T12 22'
 
+// Warn when the picked spot is within this many metres of an existing QRIS
+const PROXIMITY_METERS = 30
+
 const props = defineProps<{
   modelValue: { lat: number; lng: number } | null
   initialCenter?: { lat: number; lng: number } | null
+  // Existing locations shown as muted reference pins to help avoid duplicates
+  locations?: QrisLocation[]
+  // Location id to exclude from reference pins / proximity check (e.g. when editing)
+  excludeId?: string
 }>()
 
 const emit = defineEmits<{
@@ -219,11 +241,11 @@ function useMyLocation() {
 }
 
 // ─── Map helpers ──────────────────────────────────────────────────────────────
-function pinIcon(): DivIcon {
+function pinIcon(color = '#2563eb', size = 32): DivIcon {
   const el = document.createElement('div')
   vRender(
-    h('svg', { xmlns: 'http://www.w3.org/2000/svg', viewBox: '0 0 24 24', width: 32, height: 32 }, [
-      h('path', { fill: '#2563eb', d: LOCATION_ON_PATH }),
+    h('svg', { xmlns: 'http://www.w3.org/2000/svg', viewBox: '0 0 24 24', width: size, height: size }, [
+      h('path', { fill: color, d: LOCATION_ON_PATH }),
     ]),
     el,
   )
@@ -232,10 +254,63 @@ function pinIcon(): DivIcon {
   return L!.divIcon({
     html,
     className: '',
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
   })
 }
+
+// ─── Reference markers (existing locations) ─────────────────────────────────────
+let refMarkers: Marker[] = []
+
+function syncRefMarkers() {
+  if (!map || !L) return
+  for (const m of refMarkers) m.remove()
+  refMarkers = []
+  for (const loc of props.locations ?? []) {
+    if (loc.id === props.excludeId) continue
+    const m = L.marker([loc.latitude, loc.longitude], {
+      icon: pinIcon('#94a3b8', 24), // muted grey, smaller — clearly not the user's pin
+      interactive: false, // don't intercept map clicks used to place the pin
+      keyboard: false,
+      zIndexOffset: -1000,
+    })
+    m.setOpacity(0.65)
+    m.addTo(map)
+    refMarkers.push(m)
+  }
+}
+
+// ─── Proximity check ────────────────────────────────────────────────────────────
+function distanceMeters(
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number },
+): number {
+  const R = 6371000
+  const toRad = (d: number) => (d * Math.PI) / 180
+  const dLat = toRad(b.lat - a.lat)
+  const dLng = toRad(b.lng - a.lng)
+  const lat1 = toRad(a.lat)
+  const lat2 = toRad(b.lat)
+  const x =
+    Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(x))
+}
+
+const nearby = computed(() => {
+  if (!props.modelValue) return null
+  let closest: QrisLocation | null = null
+  let min = Infinity
+  for (const loc of props.locations ?? []) {
+    if (loc.id === props.excludeId) continue
+    const d = distanceMeters(props.modelValue, { lat: loc.latitude, lng: loc.longitude })
+    if (d < min) {
+      min = d
+      closest = loc
+    }
+  }
+  if (closest && min <= PROXIMITY_METERS) return { location: closest, distance: Math.round(min) }
+  return null
+})
 
 function setTileLayer() {
   if (!L || !map) return
@@ -269,6 +344,7 @@ onMounted(async () => {
   map = L.map(mapEl.value!, { zoomControl: false }).setView(center, zoom)
 
   setTileLayer()
+  syncRefMarkers()
 
   if (props.modelValue) placeMarker(props.modelValue)
 
@@ -289,4 +365,7 @@ onUnmounted(() => {
 
 // Keep tile layer in sync with global map style changes
 watch(style, () => setTileLayer())
+
+// Re-render reference pins when the locations list changes
+watch(() => props.locations, syncRefMarkers, { deep: true })
 </script>
