@@ -3,39 +3,44 @@ import { requireAuth } from '../utils/auth'
 import { isAdminEmail } from '../utils/admin'
 import { sendPendingNotification, sendSubmissionConfirmation } from '../utils/mailer'
 
-const ipStore = new Map<string, number[]>()
-const LIMIT = 5
-const WINDOW_MS = 60_000
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now()
-  const hits = (ipStore.get(ip) ?? []).filter((t) => now - t < WINDOW_MS)
-  if (hits.length >= LIMIT) return false
-  hits.push(now)
-  ipStore.set(ip, hits)
-  return true
+async function verifyTurnstile(token: string): Promise<boolean> {
+  const secret = process.env.TURNSTILE_SECRET_KEY
+  if (!secret) return true // not configured — dev or opt-out
+  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ secret, response: token }),
+  })
+  const data = (await res.json()) as { success: boolean }
+  return data.success
 }
 
 export default defineEventHandler(async (event) => {
-  const ip =
-    getHeader(event, 'x-forwarded-for')?.split(',')[0]?.trim() ??
-    getHeader(event, 'x-real-ip') ??
-    'unknown'
-
-  if (!checkRateLimit(ip))
-    throw createError({
-      statusCode: 429,
-      message: 'Too many requests. Please wait before submitting again.',
-    })
-
   const email = requireAuth(event)
   const body = await readBody(event)
 
+  // Verify Turnstile when token is present; sync replays won't have one — auth is the gate.
+  if (body?.turnstileToken) {
+    const valid = await verifyTurnstile(body.turnstileToken)
+    if (!valid)
+      throw createError({
+        statusCode: 400,
+        message: 'Human verification failed. Please try again.',
+      })
+  }
+
   if (!body?.name?.trim()) throw createError({ statusCode: 400, message: 'Name is required' })
+  if (body.name.trim().length > 100)
+    throw createError({ statusCode: 400, message: 'Name must be 100 characters or fewer' })
+  if ((body.description?.trim() ?? '').length > 500)
+    throw createError({ statusCode: 400, message: 'Description must be 500 characters or fewer' })
   if (!body?.qris?.trim())
     throw createError({ statusCode: 400, message: 'QRIS string is required' })
   if (typeof body.latitude !== 'number' || typeof body.longitude !== 'number')
     throw createError({ statusCode: 400, message: 'Valid location is required' })
+
+  const latitude = Math.max(-90, Math.min(90, body.latitude))
+  const longitude = Math.max(-180, Math.min(180, body.longitude))
 
   const admin = await isAdminEmail(email)
   const status = admin ? '1' : '2'
@@ -43,8 +48,8 @@ export default defineEventHandler(async (event) => {
   const location = await addLocation({
     name: body.name.trim(),
     description: body.description?.trim() ?? '',
-    latitude: body.latitude,
-    longitude: body.longitude,
+    latitude,
+    longitude,
     qris: body.qris.trim(),
     creator: email,
     status,

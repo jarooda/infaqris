@@ -13,6 +13,7 @@ export default defineNuxtConfig({
     googleClientId: process.env.GOOGLE_CLIENT_ID ?? '',
     public: {
       googleClientId: process.env.GOOGLE_CLIENT_ID ?? '',
+      turnstileSiteKey: process.env.TURNSTILE_SITE_KEY ?? '',
     },
   },
   pwa: {

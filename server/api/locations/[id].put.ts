@@ -10,10 +10,17 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
   if (!body?.name?.trim()) throw createError({ statusCode: 400, message: 'Name is required' })
+  if (body.name.trim().length > 100)
+    throw createError({ statusCode: 400, message: 'Name must be 100 characters or fewer' })
+  if ((body.description?.trim() ?? '').length > 500)
+    throw createError({ statusCode: 400, message: 'Description must be 500 characters or fewer' })
   if (!body?.qris?.trim())
     throw createError({ statusCode: 400, message: 'QRIS string is required' })
   if (!isNumber(body.latitude) || !isNumber(body.longitude))
     throw createError({ statusCode: 400, message: 'Valid location is required' })
+
+  const latitude = Math.max(-90, Math.min(90, body.latitude))
+  const longitude = Math.max(-180, Math.min(180, body.longitude))
 
   // If the entry is pending (status 2), promote it to active (status 1) on admin edit
   const all = await getLocations()
@@ -25,8 +32,8 @@ export default defineEventHandler(async (event) => {
     {
       name: body.name.trim(),
       description: body.description?.trim() ?? '',
-      latitude: body.latitude,
-      longitude: body.longitude,
+      latitude,
+      longitude,
       qris: body.qris.trim(),
     },
     email,

@@ -22,6 +22,7 @@ interface AdminCache {
 }
 
 let cache: AdminCache | null = null
+// A revoked admin email retains access for up to this duration after removal from the sheet.
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 /**
