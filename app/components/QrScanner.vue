@@ -93,4 +93,11 @@ async function onFileUpload(event: Event) {
     decodeError.value = 'No QR code found. Try a clearer or closer photo.'
   }
 }
+
+function reset() {
+  decodeSuccess.value = false
+  decodeError.value = ''
+}
+
+defineExpose({ reset })
 </script>

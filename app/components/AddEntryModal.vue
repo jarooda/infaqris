@@ -37,7 +37,7 @@
       <div class="flex-1 overflow-y-auto p-5 pt-4">
         <!-- Step 1: QR Scan -->
         <ClientOnly v-if="step === 1">
-          <QrScanner @scanned="onScanned" />
+          <QrScanner ref="qrScannerRef" @scanned="onScanned" />
           <div v-if="form.qris" class="mt-3 p-3 bg-green-50 border border-green-200 rounded-xl">
             <p class="text-xs font-medium text-green-700 mb-1">QRIS string captured</p>
             <p class="text-xs text-green-600 font-mono break-all line-clamp-3">{{ form.qris }}</p>
@@ -203,6 +203,7 @@ const form = reactive({
   location: null as { lat: number; lng: number } | null,
 })
 
+const qrScannerRef = ref<{ reset: () => void } | null>(null)
 const turnstileRef = ref<HTMLElement | null>(null)
 const turnstileToken = ref('')
 let turnstileWidgetId: string | null = null
@@ -268,6 +269,7 @@ function onScanned(value: string) {
   // Reject anything that isn't a valid QRIS — don't advance to step 2
   if (!info) {
     showToast('QR code bukan QRIS yang valid. / Not a valid QRIS code.', 'error')
+    qrScannerRef.value?.reset()
     return
   }
   form.qris = value
