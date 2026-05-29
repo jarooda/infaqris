@@ -130,7 +130,7 @@ const LOCATION_ON_PATH =
   'M13.413 11.413Q14 10.825 14 10t-.587-1.412T12 8t-1.412.588T10 10t.588 1.413T12 12t1.413-.587M12 22q-4.025-3.425-6.012-6.362T4 10.2q0-3.75 2.413-5.975T12 2t5.588 2.225T20 10.2q0 2.5-1.987 5.438T12 22'
 
 // Warn when the picked spot is within this many metres of an existing QRIS
-const PROXIMITY_METERS = 30
+const PROXIMITY_METERS = 50
 
 const props = defineProps<{
   modelValue: { lat: number; lng: number } | null

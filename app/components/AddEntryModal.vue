@@ -37,7 +37,7 @@
       <div class="flex-1 overflow-y-auto p-5 pt-4">
         <!-- Step 1: QR Scan -->
         <ClientOnly v-if="step === 1">
-          <QrScanner @scanned="onScanned" />
+          <QrScanner ref="qrScannerRef" @scanned="onScanned" />
           <div v-if="form.qris" class="mt-3 p-3 bg-green-50 border border-green-200 rounded-xl">
             <p class="text-xs font-medium text-green-700 mb-1">QRIS string captured</p>
             <p class="text-xs text-green-600 font-mono break-all line-clamp-3">{{ form.qris }}</p>
@@ -100,6 +100,7 @@
             <input
               v-model="form.name"
               type="text"
+              maxlength="100"
               placeholder="e.g. Masjid Al Mabrur"
               class="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -111,6 +112,7 @@
             <textarea
               v-model="form.description"
               rows="3"
+              maxlength="500"
               placeholder="Optional description..."
               class="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -125,6 +127,7 @@
             :locations="locations"
             :suppress-warning="submitting"
           />
+          <div ref="turnstileRef" class="flex justify-center mt-3" />
         </ClientOnly>
       </div>
 
@@ -188,6 +191,7 @@ const emit = defineEmits<{
 
 const { addLocation, locations } = useLocations()
 const { show: showToast } = useToast()
+const runtimeConfig = useRuntimeConfig()
 
 const step = ref(1)
 const submitting = ref(false)
@@ -197,6 +201,55 @@ const form = reactive({
   name: '',
   description: '',
   location: null as { lat: number; lng: number } | null,
+})
+
+const qrScannerRef = ref<{ reset: () => void } | null>(null)
+const turnstileRef = ref<HTMLElement | null>(null)
+const turnstileToken = ref('')
+let turnstileWidgetId: string | null = null
+
+const siteKey = runtimeConfig.public.turnstileSiteKey as string
+
+async function renderTurnstile() {
+  if (!siteKey || !turnstileRef.value) return
+  // Load script if not yet present
+  if (!(window as any).turnstile) {
+    await new Promise<void>((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
+      script.onload = () => resolve()
+      script.onerror = () => reject()
+      document.head.appendChild(script)
+    })
+  }
+  // Remove previous widget if navigating back then forward
+  if (turnstileWidgetId !== null) {
+    ;(window as any).turnstile.remove(turnstileWidgetId)
+    turnstileWidgetId = null
+    turnstileToken.value = ''
+  }
+  turnstileWidgetId = (window as any).turnstile.render(turnstileRef.value, {
+    sitekey: siteKey,
+    callback: (token: string) => {
+      turnstileToken.value = token
+    },
+    'expired-callback': () => {
+      turnstileToken.value = ''
+    },
+  })
+}
+
+watch(step, async (s) => {
+  if (s === 3) {
+    await nextTick()
+    renderTurnstile()
+  }
+})
+
+onUnmounted(() => {
+  if (turnstileWidgetId !== null) {
+    ;(window as any).turnstile?.remove(turnstileWidgetId)
+  }
 })
 
 const parsedQris = computed(() => parseQris(form.qris))
@@ -209,13 +262,14 @@ const canProceed = computed(() => {
   return false
 })
 
-const canSubmit = computed(() => !!form.location)
+const canSubmit = computed(() => !!form.location && (!siteKey || !!turnstileToken.value))
 
 function onScanned(value: string) {
   const info = parseQris(value)
   // Reject anything that isn't a valid QRIS — don't advance to step 2
   if (!info) {
     showToast('QR code bukan QRIS yang valid. / Not a valid QRIS code.', 'error')
+    qrScannerRef.value?.reset()
     return
   }
   form.qris = value
@@ -229,19 +283,27 @@ async function submit() {
   submitting.value = true
   submitError.value = ''
   try {
-    await addLocation({
-      name: form.name.trim(),
-      description: form.description.trim(),
-      latitude: form.location.lat,
-      longitude: form.location.lng,
-      qris: form.qris,
-    })
+    await addLocation(
+      {
+        name: form.name.trim(),
+        description: form.description.trim(),
+        latitude: form.location.lat,
+        longitude: form.location.lng,
+        qris: form.qris,
+      },
+      turnstileToken.value || undefined,
+    )
     showToast('QRIS location saved!', 'success')
     emit('added')
     emit('close')
   } catch (e: any) {
     submitError.value = e?.data?.message ?? e?.message ?? 'Failed to save. Please try again.'
     showToast(submitError.value, 'error')
+    // Reset widget so user can retry
+    if (turnstileWidgetId !== null) {
+      ;(window as any).turnstile?.reset(turnstileWidgetId)
+      turnstileToken.value = ''
+    }
   } finally {
     submitting.value = false
   }

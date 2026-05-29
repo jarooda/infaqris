@@ -9,9 +9,7 @@
       <img src="/android-chrome-192x192.png" alt="InfaQRIS" class="w-12 h-12 rounded-xl" />
       <div class="text-center">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Sign in</h2>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          to add and manage QRIS locations
-        </p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">To add QRIS locations</p>
       </div>
       <div ref="gsiButtonRef" class="flex justify-center min-h-[44px]" />
       <button

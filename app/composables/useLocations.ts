@@ -54,7 +54,7 @@ export const useLocations = () => {
     initLocations()
   }
 
-  async function addLocation(data: LocationInput): Promise<LocalLocation> {
+  async function addLocation(data: LocationInput, turnstileToken?: string): Promise<LocalLocation> {
     const { isOnline } = useNetworkStatus()
     const tempId = 'local_' + crypto.randomUUID()
     const now = new Date().toISOString()
@@ -86,7 +86,7 @@ export const useLocations = () => {
       try {
         const result = await $fetch<QrisLocation>('/api/locations', {
           method: 'POST',
-          body: data,
+          body: turnstileToken ? { ...data, turnstileToken } : data,
         })
         // Replace temp entry with real server entry
         await dbDeleteLocation(tempId)

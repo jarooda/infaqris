@@ -246,12 +246,11 @@
       </ClientOnly>
     </div>
 
-    <!-- FAB — only shown when authenticated -->
+    <!-- FAB -->
     <button
-      v-if="user"
       class="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-colors z-1001"
       title="Add QRIS"
-      @click="showAdd = true"
+      @click="user ? (showAdd = true) : (showLogin = true)"
     >
       <Icon name="material-symbols:add" class="text-3xl" />
     </button>
