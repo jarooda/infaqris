@@ -106,22 +106,22 @@ const faqs: FaqItem[] = [
     id: 'how-to-use',
     question:
       'Bagaimana cara menggunakannya? <em class="font-normal text-gray-500 dark:text-gray-400">/ How do I use this?</em>',
-    answer: `Buka peta, temukan titik QRIS terdekat, klik untuk melihat kode QR, lalu scan untuk berdonasi. Gunakan tombol sort di panel kiri untuk mengurutkan berdasarkan <strong>jarak terdekat</strong> dari posisi Anda. Untuk menambah data, login dengan akun Google terlebih dahulu.
-      <em class="text-gray-500 dark:text-gray-400"> / Open the map, find a nearby QRIS location, click to view the QR code, then scan to donate. Use the sort button in the left panel to order by <strong>nearest first</strong>. To add entries, sign in with your Google account first.</em>`,
+    answer: `Buka peta, temukan titik QRIS terdekat, klik untuk melihat kode QR, lalu scan untuk berdonasi. Gunakan tombol sort di panel kiri untuk mengurutkan berdasarkan <strong>jarak terdekat</strong> dari posisi Anda. Untuk menambah data baru, login dengan akun Google terlebih dahulu. Pengeditan data yang sudah ada hanya dapat dilakukan oleh admin.
+      <em class="text-gray-500 dark:text-gray-400"> / Open the map, find a nearby QRIS location, click to view the QR code, then scan to donate. Use the sort button in the left panel to order by <strong>nearest first</strong>. To add new entries, sign in with your Google account first. Editing existing data is handled by admins only.</em>`,
   },
   {
     id: 'qr-validity',
     question:
       'Seberapa terpercaya kode QR di aplikasi ini? <em class="font-normal text-gray-500 dark:text-gray-400">/ How trustworthy are the QR codes in this app?</em>',
-    answer: `Kami menyediakan beberapa lapisan untuk membantu Anda memverifikasi sebelum berdonasi. Pertama, info QRIS otomatis — setiap entri menampilkan nama merchant, bank penerbit, merchant ID, dan kota yang terdaftar; cocokkan dengan nama masjid atau mushola yang dituju. Kedua, moderasi admin — kiriman dari pengguna biasa masuk ke antrian tinjauan dan baru muncul di peta setelah disetujui. Ketiga, akuntabilitas kontributor — setiap entri mencatat siapa yang menambahkan dan kapan. Meski demikian, kami tidak dapat menjamin keakuratan mutlak karena data bersifat crowdsource dan kode QR fisik bisa berubah setelah dimasukkan. Sebelum berdonasi, selalu periksa nama merchant yang tertera dan pastikan sesuai. Jika ragu, tanyakan langsung kepada pengurus setempat.
-      <em class="text-gray-500 dark:text-gray-400"> / We provide several layers to help you verify before donating. First, automatic QRIS info — every entry shows the registered merchant name, issuing bank, merchant ID, and city; cross-check this against the mosque or prayer room you intend to donate to. Second, admin moderation — submissions from regular users enter a review queue and only appear on the map once approved. Third, contributor accountability — every entry records who added it and when. That said, we cannot guarantee absolute accuracy since data is crowdsourced and physical QR codes may change after submission. Always check the merchant name shown before donating. If in doubt, ask the local mosque administrator directly.</em>`,
+    answer: `Kami menyediakan beberapa lapisan untuk membantu Anda memverifikasi sebelum berdonasi. Pertama, info QRIS otomatis — setiap entri menampilkan nama merchant, bank penerbit, merchant ID, dan kota yang terdaftar; cocokkan dengan nama masjid atau mushola yang dituju. Kedua, moderasi admin — kiriman dari pengguna biasa masuk ke antrian tinjauan dan baru muncul di peta setelah disetujui. Saat meninjau, admin memverifikasi nama merchant dan kota yang tertera di QRIS dengan membandingkannya ke lokasi yang ditandai di peta menggunakan tampilan satelit atau Street View — memastikan nama terdaftar cocok dengan bangunan yang sebenarnya. Ketiga, akuntabilitas kontributor — setiap entri mencatat siapa yang menambahkan dan kapan. Meski demikian, kami tidak dapat menjamin keakuratan mutlak karena data bersifat crowdsource dan kode QR fisik bisa berubah setelah dimasukkan. Sebelum berdonasi, selalu periksa nama merchant yang tertera dan pastikan sesuai. Jika ragu, tanyakan langsung kepada pengurus setempat.
+      <em class="text-gray-500 dark:text-gray-400"> / We provide several layers to help you verify before donating. First, automatic QRIS info — every entry shows the registered merchant name, issuing bank, merchant ID, and city; cross-check this against the mosque or prayer room you intend to donate to. Second, admin moderation — submissions from regular users enter a review queue and only appear on the map once approved. During review, admins verify the merchant name and city shown in the QRIS by cross-referencing the pinned location on the map using satellite or Street View — confirming the registered name matches the actual building. Third, contributor accountability — every entry records who added it and when. That said, we cannot guarantee absolute accuracy since data is crowdsourced and physical QR codes may change after submission. Always check the merchant name shown before donating. If in doubt, ask the local mosque administrator directly.</em>`,
   },
   {
     id: 'why-login',
     question:
       'Kenapa harus login? <em class="font-normal text-gray-500 dark:text-gray-400">/ Why do I need to login?</em>',
-    answer: `Login sepenuhnya opsional — Anda tetap bisa melihat peta, mencari lokasi, dan scan kode QR tanpa akun. Login hanya diperlukan jika Anda ingin menambah atau mengedit data, untuk menjaga kualitas dan akuntabilitas kontribusi.
-      <em class="text-gray-500 dark:text-gray-400"> / Login is entirely optional — you can browse the map, search locations, and scan QR codes without an account. It's only required if you want to add or edit data, to keep contributions accurate and accountable.</em>`,
+    answer: `Login sepenuhnya opsional — Anda tetap bisa melihat peta, mencari lokasi, dan scan kode QR tanpa akun. Login hanya diperlukan jika Anda ingin menambah data baru, untuk menjaga kualitas dan akuntabilitas kontribusi.
+      <em class="text-gray-500 dark:text-gray-400"> / Login is entirely optional — you can browse the map, search locations, and scan QR codes without an account. It's only required if you want to add new data, to keep contributions accurate and accountable.</em>`,
   },
   {
     id: 'permissions',
@@ -141,8 +141,8 @@ const faqs: FaqItem[] = [
     id: 'data-freshness',
     question:
       'Apakah data selalu up-to-date? <em class="font-normal text-gray-500 dark:text-gray-400">/ Is the data always up to date?</em>',
-    answer: `Data diambil langsung saat halaman dibuka, namun akurasi isi bergantung pada kontribusi pengguna. Jika menemukan data yang salah atau usang, Anda dapat mengeditnya (jika login) atau melaporkannya kepada kami.
-      <em class="text-gray-500 dark:text-gray-400"> / Data is fetched live each time the page loads, but accuracy depends on user contributions. If you find incorrect or outdated data, you can edit it (if logged in) or report it to us.</em>`,
+    answer: `Data diambil langsung saat halaman dibuka, namun akurasi isi bergantung pada kontribusi pengguna. Jika menemukan data yang salah atau usang, silakan laporkan kepada kami — pengeditan dilakukan oleh admin.
+      <em class="text-gray-500 dark:text-gray-400"> / Data is fetched live each time the page loads, but accuracy depends on user contributions. If you find incorrect or outdated data, please report it to us — edits are handled by admins.</em>`,
   },
   {
     id: 'contribute',
