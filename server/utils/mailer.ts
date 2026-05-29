@@ -101,8 +101,6 @@ export async function sendSubmissionConfirmation(
   }
 
   const sheetUrl = spreadsheetUrl()
-  const statusLine =
-    'Submission kamu sedang <strong>menunggu persetujuan</strong> admin. / Your submission is <strong>pending approval</strong>.'
 
   await transporter.sendMail({
     from: `"InfaQRIS Bot" <${SMTP_EMAIL}>`,
@@ -110,17 +108,29 @@ export async function sendSubmissionConfirmation(
     subject: `[InfaQRIS] Terima kasih — submission "${payload.name}" diterima`,
     html: `
       <h2 style="margin:0 0 16px">🙏 Terima kasih!</h2>
-      <p style="font-size:14px;color:#374151">
-        Submission QRIS <strong>${payload.name}</strong> berhasil dikirim.
+      <p style="margin:0 0 16px;font-size:14px;color:#374151">
+        Submission QRIS kamu sudah kami terima dan akan segera ditinjau.<br>
+        <em style="color:#6b7280">Your QRIS submission has been received and will be reviewed shortly.</em>
       </p>
-      <p style="font-size:14px;color:#374151">${statusLine}</p>
+      <table style="border-collapse:collapse;font-size:14px">
+        <tr>
+          <td style="padding:6px 12px 6px 0;color:#666;white-space:nowrap">Nama</td>
+          <td style="padding:6px 0"><strong>${payload.name}</strong></td>
+        </tr>
+        <tr>
+          <td style="padding:6px 12px 6px 0;color:#666">Status</td>
+          <td style="padding:6px 0">
+            <span style="display:inline-block;background:#fef3c7;color:#b45309;font-size:12px;font-weight:600;padding:2px 10px;border-radius:9999px">Menunggu persetujuan</span>
+          </td>
+        </tr>
+      </table>
       ${
         sheetUrl
-          ? `<p style="font-size:14px;color:#374151">
-              Kamu bisa melihat seluruh data di Google Sheet berikut: /
-              You can view all the data in the Google Sheet below:
+          ? `<p style="margin:16px 0 8px;font-size:14px;color:#374151">
+              Pantau seluruh data di Google Sheet: /
+              <em style="color:#6b7280">Track all the data in the Google Sheet:</em>
             </p>
-            <p style="margin:16px 0">
+            <p style="margin:0 0 8px">
               <a href="${sheetUrl}" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-size:14px">
                 📊 Lihat Spreadsheet
               </a>
@@ -128,7 +138,13 @@ export async function sendSubmissionConfirmation(
           : ''
       }
       <hr style="margin:16px 0;border:none;border-top:1px solid #e5e7eb">
-      <p style="font-size:13px;color:#6b7280">
+      <p style="margin:0 0 12px;font-size:13px;color:#6b7280;line-height:1.6">
+        Submission akan ditinjau oleh admin. Setelah <strong>disetujui</strong>, QRIS langsung
+        tampil di peta InfaQRIS; jika ditolak, data tidak akan ditampilkan.<br>
+        <em>An admin will review your submission. Once <strong>approved</strong> it appears on the
+        InfaQRIS map; if rejected, it won't be shown.</em>
+      </p>
+      <p style="margin:0;font-size:12px;color:#9ca3af">
         Email ini dikirim otomatis oleh InfaQRIS. / This email was sent automatically by InfaQRIS.
       </p>
     `,

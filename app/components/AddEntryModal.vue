@@ -123,6 +123,7 @@
             v-model="form.location"
             :initial-center="props.initialCenter"
             :locations="locations"
+            :suppress-warning="submitting"
           />
         </ClientOnly>
       </div>

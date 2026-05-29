@@ -36,7 +36,7 @@
         <Icon name="material-symbols:schedule" class="w-4 h-4 shrink-0" />
         <span>
           Menunggu persetujuan admin.<br class="sm:hidden" />
-          <em class="not-italic text-amber-600 dark:text-amber-500">Pending admin approval.</em>
+          <em class="text-amber-600 dark:text-amber-500"> / Pending admin approval.</em>
         </span>
       </div>
 
