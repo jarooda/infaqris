@@ -18,6 +18,13 @@
       >
         Cancel
       </button>
+      <NuxtLink
+        to="/privacy"
+        class="text-xs text-gray-400 dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+        @click="$emit('close')"
+      >
+        Kebijakan Privasi <em>/ Privacy Policy</em>
+      </NuxtLink>
     </div>
   </div>
 </template>
