@@ -97,14 +97,6 @@
             <em>Invalid QRIS, please edit or report.</em></span
           >
         </div>
-        <button
-          v-if="!isPending"
-          class="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-sm text-gray-700 dark:text-gray-300 rounded-xl transition-colors font-medium"
-          @click="copyQris"
-        >
-          {{ copied ? 'Copied!' : 'Copy QRIS String' }}
-        </button>
-
         <!-- Edit & Delete: only for admins -->
         <div v-if="isAdmin" class="flex gap-2 pt-1">
           <button
@@ -217,7 +209,6 @@ const { isAdmin } = useAuth()
 const { deleteLocation } = useLocations()
 const { show: showToast } = useToast()
 const qrCanvas = ref<HTMLCanvasElement | null>(null)
-const copied = ref(false)
 const confirmingDelete = ref(false)
 const deleteConfirmText = ref('')
 const deleting = ref(false)
@@ -242,14 +233,6 @@ onMounted(async () => {
     })
   }
 })
-
-async function copyQris() {
-  await navigator.clipboard.writeText(props.location.qris)
-  copied.value = true
-  setTimeout(() => {
-    copied.value = false
-  }, 2000)
-}
 
 function formatDate(iso: string): string {
   return new Intl.DateTimeFormat('id-ID', {

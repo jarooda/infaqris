@@ -47,61 +47,49 @@
         <!-- Step 2: Name + Description -->
         <div v-if="step === 2" class="space-y-4">
           <!-- Parsed QRIS info -->
-          <div>
+          <div v-if="parsedQris">
             <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">QRIS Info</p>
-            <template v-if="parsedQris">
-              <div
-                class="p-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl"
-              >
-                <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
-                  <div>
-                    <span class="text-gray-400 dark:text-gray-500">Merchant</span>
-                    <p
-                      class="text-gray-700 dark:text-gray-300 font-medium truncate"
-                      :title="parsedQris.merchantName"
-                    >
-                      {{ parsedQris.merchantName || '—' }}
-                    </p>
-                  </div>
-                  <div>
-                    <span class="text-gray-400 dark:text-gray-500">Bank</span>
-                    <p
-                      class="text-gray-700 dark:text-gray-300 font-medium truncate"
-                      :title="parsedQris.bank"
-                    >
-                      {{ parsedQris.bank || '—' }}
-                    </p>
-                  </div>
-                  <div>
-                    <span class="text-gray-400 dark:text-gray-500">Merchant ID</span>
-                    <p
-                      class="text-gray-700 dark:text-gray-300 font-mono truncate"
-                      :title="parsedQris.merchantId"
-                    >
-                      {{ parsedQris.merchantId || '—' }}
-                    </p>
-                  </div>
-                  <div>
-                    <span class="text-gray-400 dark:text-gray-500">Kota / City</span>
-                    <p
-                      class="text-gray-700 dark:text-gray-300 font-medium truncate"
-                      :title="parsedQris.city"
-                    >
-                      {{ parsedQris.city || '—' }}
-                    </p>
-                  </div>
+            <div
+              class="p-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl"
+            >
+              <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+                <div>
+                  <span class="text-gray-400 dark:text-gray-500">Merchant</span>
+                  <p
+                    class="text-gray-700 dark:text-gray-300 font-medium truncate"
+                    :title="parsedQris.merchantName"
+                  >
+                    {{ parsedQris.merchantName || '—' }}
+                  </p>
+                </div>
+                <div>
+                  <span class="text-gray-400 dark:text-gray-500">Bank</span>
+                  <p
+                    class="text-gray-700 dark:text-gray-300 font-medium truncate"
+                    :title="parsedQris.bank"
+                  >
+                    {{ parsedQris.bank || '—' }}
+                  </p>
+                </div>
+                <div>
+                  <span class="text-gray-400 dark:text-gray-500">Merchant ID</span>
+                  <p
+                    class="text-gray-700 dark:text-gray-300 font-mono truncate"
+                    :title="parsedQris.merchantId"
+                  >
+                    {{ parsedQris.merchantId || '—' }}
+                  </p>
+                </div>
+                <div>
+                  <span class="text-gray-400 dark:text-gray-500">Kota / City</span>
+                  <p
+                    class="text-gray-700 dark:text-gray-300 font-medium truncate"
+                    :title="parsedQris.city"
+                  >
+                    {{ parsedQris.city || '—' }}
+                  </p>
                 </div>
               </div>
-            </template>
-            <div
-              v-else
-              class="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-xs text-amber-600 dark:text-amber-400"
-            >
-              <Icon name="material-symbols:warning-outline" class="w-4 h-4 shrink-0" />
-              <span>
-                QRIS tidak valid — silakan kembali dan scan ulang. /
-                <em>Invalid QRIS, please go back and rescan.</em>
-              </span>
             </div>
           </div>
 
@@ -131,7 +119,11 @@
 
         <!-- Step 3: Location -->
         <ClientOnly v-if="step === 3">
-          <LocationPicker v-model="form.location" :initial-center="props.initialCenter" />
+          <LocationPicker
+            v-model="form.location"
+            :initial-center="props.initialCenter"
+            :locations="locations"
+          />
         </ClientOnly>
       </div>
 
@@ -193,7 +185,7 @@ const emit = defineEmits<{
   added: []
 }>()
 
-const { addLocation } = useLocations()
+const { addLocation, locations } = useLocations()
 const { show: showToast } = useToast()
 
 const step = ref(1)
@@ -219,12 +211,15 @@ const canProceed = computed(() => {
 const canSubmit = computed(() => !!form.location)
 
 function onScanned(value: string) {
+  const info = parseQris(value)
+  // Reject anything that isn't a valid QRIS — don't advance to step 2
+  if (!info) {
+    showToast('QR code bukan QRIS yang valid. / Not a valid QRIS code.', 'error')
+    return
+  }
   form.qris = value
   // Pre-fill name from merchant name if the field is still empty
-  if (!form.name) {
-    const info = parseQris(value)
-    if (info?.merchantName) form.name = info.merchantName
-  }
+  if (!form.name && info.merchantName) form.name = info.merchantName
   step.value = 2
 }
 

@@ -143,7 +143,7 @@
               :title="`Sort: ${sortLabel}`"
               class="p-2 rounded-xl border transition-colors flex items-center justify-center"
               :class="
-                sortBy !== 'default'
+                effectiveSort !== 'default'
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                   : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               "
@@ -161,7 +161,7 @@
                 :key="opt.value"
                 class="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left transition-colors"
                 :class="
-                  sortBy === opt.value
+                  effectiveSort === opt.value
                     ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium'
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                 "
@@ -170,7 +170,7 @@
                 <Icon :name="opt.icon" class="text-base w-4 h-4 shrink-0" />
                 {{ opt.label }}
                 <Icon
-                  v-if="sortBy === opt.value"
+                  v-if="effectiveSort === opt.value"
                   name="material-symbols:check"
                   class="ml-auto text-base w-4 h-4"
                 />
@@ -290,6 +290,7 @@
 
 <script setup lang="ts">
 import type { QrisLocation } from '~/types'
+import type { SortBy } from '~/composables/useSortPreference'
 
 const route = useRoute()
 const router = useRouter()
@@ -313,8 +314,7 @@ const showLogin = ref(false)
 const mapViewRef = ref<{ invalidateSize: () => void } | null>(null)
 const year = new Date().getFullYear()
 
-type SortBy = 'default' | 'alpha' | 'distance'
-const sortBy = ref<SortBy>('default')
+const { sortBy, setSort, init: initSort } = useSortPreference()
 const showSortMenu = ref(false)
 
 const sortOptions: { value: SortBy; label: string; icon: string }[] = [
@@ -324,12 +324,19 @@ const sortOptions: { value: SortBy; label: string; icon: string }[] = [
 ]
 
 function sortOptionClicked(opt: (typeof sortOptions)[number]) {
-  sortBy.value = opt.value
+  setSort(opt.value)
   showSortMenu.value = false
 }
 
+// 'distance' needs the user's location — if it's unavailable, fall back to
+// 'default' for display/sorting while keeping the saved preference intact so it
+// re-activates automatically once geolocation arrives.
+const effectiveSort = computed<SortBy>(() =>
+  sortBy.value === 'distance' && !userCenter.value ? 'default' : sortBy.value,
+)
+
 const sortLabel = computed(
-  () => sortOptions.find((o) => o.value === sortBy.value)?.label ?? 'Default',
+  () => sortOptions.find((o) => o.value === effectiveSort.value)?.label ?? 'Default',
 )
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -388,9 +395,9 @@ const filtered = computed(() => {
       (loc) => loc.name.toLowerCase().includes(q) || loc.description.toLowerCase().includes(q),
     )
   }
-  if (sortBy.value === 'alpha') {
+  if (effectiveSort.value === 'alpha') {
     list = [...list].sort((a, b) => a.name.localeCompare(b.name))
-  } else if (sortBy.value === 'distance' && userCenter.value) {
+  } else if (effectiveSort.value === 'distance' && userCenter.value) {
     const { lat, lng } = userCenter.value
     list = [...list].sort(
       (a, b) =>
@@ -474,6 +481,7 @@ async function initGsi() {
 
 onMounted(async () => {
   initTheme()
+  initSort()
   await fetchUser()
   initGsi()
   document.addEventListener('click', (e) => {
