@@ -14,6 +14,7 @@ export default defineNuxtConfig({
     public: {
       googleClientId: process.env.GOOGLE_CLIENT_ID ?? '',
       turnstileSiteKey: process.env.TURNSTILE_SITE_KEY ?? '',
+      sheetPublicUrl: process.env.GOOGLE_SPREADSHEET_PUBLIC_URL ?? '',
     },
   },
   pwa: {

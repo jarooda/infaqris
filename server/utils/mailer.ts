@@ -11,8 +11,7 @@ export interface PendingLocationPayload {
 }
 
 function spreadsheetUrl(): string | null {
-  const id = process.env.GOOGLE_SPREADSHEET_ID
-  return id ? `https://docs.google.com/spreadsheets/d/${id}/edit` : null
+  return process.env.GOOGLE_SPREADSHEET_PUBLIC_URL || null
 }
 
 function createTransporter() {

@@ -60,16 +60,25 @@
 
     <!-- Footer -->
     <div
-      class="max-w-2xl mx-auto px-4 py-6 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400 text-center"
+      class="max-w-2xl mx-auto px-4 py-6 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400 text-center space-y-1"
     >
-      © {{ year }}
-      <a
-        href="https://jaluwibowo.id"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
-        >Jalu Wibowo Aji</a
-      >
+      <div>
+        <NuxtLink
+          to="/privacy"
+          class="hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+          >Kebijakan Privasi <em>/ Privacy Policy</em></NuxtLink
+        >
+      </div>
+      <div>
+        © {{ year }}
+        <a
+          href="https://jaluwibowo.id"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+          >Jalu Wibowo Aji</a
+        >
+      </div>
     </div>
   </div>
 </template>
@@ -78,6 +87,7 @@
 const { init: initTheme } = useTheme()
 const route = useRoute()
 const year = new Date().getFullYear()
+const sheetUrl = useRuntimeConfig().public.sheetPublicUrl as string
 
 const activeId = ref<string | null>(null)
 
@@ -134,8 +144,8 @@ const faqs: FaqItem[] = [
     id: 'data-transparency',
     question:
       'Bisakah saya melihat data yang digunakan di web ini? <em class="font-normal text-gray-500 dark:text-gray-400">/ Can I see the data powering this site?</em>',
-    answer: `Ya! Semua data disimpan di Google Sheets yang dapat diakses publik. Data meliputi nama lokasi, koordinat, dan informasi kontributor. Lihat langsung di <a href="https://docs.google.com/spreadsheets/d/14PWPiTLMnkesePI0npbZZ9y9sZR0PuuHB7O9ODe4Sk0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Google Sheets</a>.
-      <em class="text-gray-500 dark:text-gray-400"> / Yes! All data is stored in a publicly accessible Google Sheets document, including location names, coordinates, and contributor info. View it directly on <a href="https://docs.google.com/spreadsheets/d/14PWPiTLMnkesePI0npbZZ9y9sZR0PuuHB7O9ODe4Sk0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">Google Sheets</a>.</em>`,
+    answer: `Ya! Semua data disimpan di Google Sheets yang dapat diakses publik. Data meliputi nama lokasi, koordinat, dan waktu kontribusi — tanpa informasi pribadi kontributor. Lihat langsung di <a href="${sheetUrl}" target="_blank" rel="noopener noreferrer">Google Sheets</a>.
+      <em class="text-gray-500 dark:text-gray-400"> / Yes! All data is stored in a publicly accessible Google Sheets document, including location names, coordinates, and contribution timestamps — without contributor personal info. View it directly on <a href="${sheetUrl}" target="_blank" rel="noopener noreferrer">Google Sheets</a>.</em>`,
   },
   {
     id: 'data-freshness',
