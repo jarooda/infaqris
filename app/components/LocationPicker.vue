@@ -139,6 +139,9 @@ const props = defineProps<{
   locations?: QrisLocation[]
   // Location id to exclude from reference pins / proximity check (e.g. when editing)
   excludeId?: string
+  // Hide the proximity warning (e.g. while submitting, when the optimistic insert
+  // would otherwise make the just-picked spot look like a duplicate of itself)
+  suppressWarning?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -322,7 +325,7 @@ function distanceMeters(a: { lat: number; lng: number }, b: { lat: number; lng: 
 }
 
 const nearby = computed(() => {
-  if (!props.modelValue) return null
+  if (props.suppressWarning || !props.modelValue) return null
   let closest: QrisLocation | null = null
   let min = Infinity
   for (const loc of props.locations ?? []) {
