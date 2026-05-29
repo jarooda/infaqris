@@ -157,6 +157,73 @@ export async function updateLocation(
   }
 }
 
+export async function getAdminLocations() {
+  const sheets = getSheets()
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: spreadsheetId(),
+    range: 'A2:K',
+  })
+
+  return (res.data.values ?? [])
+    .map((row) => ({
+      id: row[0] ?? '',
+      name: row[1] ?? '',
+      description: row[2] ?? '',
+      latitude: parseFloat(row[3]) || 0,
+      longitude: parseFloat(row[4]) || 0,
+      qris: row[5] ?? '',
+      created_at: row[6] ?? '',
+      modified_at: row[7] ?? '',
+      creator: row[8] ?? '',
+      latest_editor: row[9] ?? '',
+      status: row[10] ?? '1',
+    }))
+    .filter((loc) => loc.id)
+}
+
+export async function updateLocationStatus(id: string, status: string, latestEditor: string) {
+  const sheets = getSheets()
+  const rowIdx = await findRowIndex(id)
+  const sheetRow = rowIdx + 1
+  const now = new Date().toISOString()
+
+  await sheets.spreadsheets.values.batchUpdate({
+    spreadsheetId: spreadsheetId(),
+    requestBody: {
+      valueInputOption: 'RAW',
+      data: [
+        { range: `H${sheetRow}`, values: [[now]] },
+        { range: `J${sheetRow}`, values: [[latestEditor]] },
+        { range: `K${sheetRow}`, values: [[status]] },
+      ],
+    },
+  })
+}
+
+export async function deleteLocation(id: string) {
+  const sheets = getSheets()
+  const rowIdx = await findRowIndex(id)
+  const sheetRow = rowIdx + 1
+
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId: spreadsheetId(),
+    requestBody: {
+      requests: [
+        {
+          deleteDimension: {
+            range: {
+              sheetId: 0,
+              dimension: 'ROWS',
+              startIndex: sheetRow - 1,
+              endIndex: sheetRow,
+            },
+          },
+        },
+      ],
+    },
+  })
+}
+
 export async function softDeleteLocation(id: string, latestEditor: string) {
   const sheets = getSheets()
   const rowIdx = await findRowIndex(id)

@@ -295,7 +295,7 @@ const route = useRoute()
 const router = useRouter()
 const runtimeConfig = useRuntimeConfig()
 
-const { locations, pending } = useLocations()
+const { locations, pending, refresh: refreshLocations } = useLocations()
 const { user, fetchUser, login, logout } = useAuth()
 const { isDark, toggle: toggleTheme, init: initTheme } = useTheme()
 const { canInstall, install: installPwa } = useInstallPwa()
@@ -448,7 +448,10 @@ async function handleLogout() {
 }
 
 watch(user, (u) => {
-  if (u) showLogin.value = false
+  if (u) {
+    showLogin.value = false
+    refreshLocations()
+  }
 })
 
 async function initGsi() {
