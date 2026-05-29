@@ -72,7 +72,7 @@
       <!-- Layer switcher -->
       <div class="bg-white dark:bg-gray-800 shadow-md rounded-xl overflow-hidden flex flex-col">
         <button
-          v-for="layer in LAYER_OPTIONS"
+          v-for="layer in MAP_STYLE_OPTIONS"
           :key="layer.key"
           :title="layer.label"
           :class="[
@@ -98,12 +98,6 @@ import type { MapStyle } from '~/composables/useMapStyle'
 
 const LOCATION_ON_PATH =
   'M13.413 11.413Q14 10.825 14 10t-.587-1.412T12 8t-1.412.588T10 10t.588 1.413T12 12t1.413-.587M12 22q-4.025-3.425-6.012-6.362T4 10.2q0-3.75 2.413-5.975T12 2t5.588 2.225T20 10.2q0 2.5-1.987 5.438T12 22'
-
-const LAYER_OPTIONS: { key: MapStyle; label: string; icon: string }[] = [
-  { key: 'osm', label: 'Map', icon: 'material-symbols:map' },
-  { key: 'satellite', label: 'Satellite', icon: 'material-symbols:satellite-alt' },
-  { key: 'dark', label: 'Dark', icon: 'material-symbols:dark-mode' },
-]
 
 // ─── Props / Emits ────────────────────────────────────────────────────────────
 const props = defineProps<{

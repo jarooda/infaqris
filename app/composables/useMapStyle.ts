@@ -30,6 +30,13 @@ export const MAP_TILE_CONFIGS: Record<MapStyle, TileConfig> = {
   },
 }
 
+// Shared by MapView and LocationPicker for the layer switcher
+export const MAP_STYLE_OPTIONS: { key: MapStyle; label: string; icon: string }[] = [
+  { key: 'osm', label: 'Map', icon: 'material-symbols:map' },
+  { key: 'satellite', label: 'Satellite', icon: 'material-symbols:satellite-alt' },
+  { key: 'dark', label: 'Dark', icon: 'material-symbols:dark-mode' },
+]
+
 export const useMapStyle = () => {
   const style = useState<MapStyle>('map_style', () => 'osm')
 

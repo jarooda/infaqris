@@ -4,6 +4,27 @@
     <div class="relative w-full" style="height: 280px">
       <div ref="mapEl" class="w-full h-full rounded-lg overflow-hidden" />
 
+      <!-- Layer switcher (top-right) — compact to stay light on the small map -->
+      <div
+        class="absolute top-2 right-2 z-1000 bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden flex flex-col"
+      >
+        <button
+          v-for="layer in MAP_STYLE_OPTIONS"
+          :key="layer.key"
+          type="button"
+          :title="layer.label"
+          :class="[
+            'flex items-center justify-center p-1.5 transition-colors',
+            style === layer.key
+              ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+              : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700',
+          ]"
+          @click="changeStyle(layer.key)"
+        >
+          <Icon :name="layer.icon" class="w-4 h-4" />
+        </button>
+      </div>
+
       <!-- Search (top-left) -->
       <div ref="searchWrapperEl" class="absolute top-2 left-2 z-1000 flex flex-col gap-1.5">
         <div
@@ -103,6 +124,7 @@
 import { h, render as vRender } from 'vue'
 import type { Map, Marker, DivIcon, TileLayer } from 'leaflet'
 import type { QrisLocation } from '~/types'
+import type { MapStyle } from '~/composables/useMapStyle'
 
 const LOCATION_ON_PATH =
   'M13.413 11.413Q14 10.825 14 10t-.587-1.412T12 8t-1.412.588T10 10t.588 1.413T12 12t1.413-.587M12 22q-4.025-3.425-6.012-6.362T4 10.2q0-3.75 2.413-5.975T12 2t5.588 2.225T20 10.2q0 2.5-1.987 5.438T12 22'
@@ -130,7 +152,12 @@ let L: typeof import('leaflet') | null = null
 let marker: Marker | null = null
 let tileLayer: TileLayer | null = null
 
-const { style, init: initMapStyle } = useMapStyle()
+const { style, setStyle, init: initMapStyle } = useMapStyle()
+
+function changeStyle(s: MapStyle) {
+  setStyle(s)
+  setTileLayer()
+}
 
 // ─── Search state ─────────────────────────────────────────────────────────────
 interface NominatimResult {
@@ -244,9 +271,11 @@ function useMyLocation() {
 function pinIcon(color = '#2563eb', size = 32): DivIcon {
   const el = document.createElement('div')
   vRender(
-    h('svg', { xmlns: 'http://www.w3.org/2000/svg', viewBox: '0 0 24 24', width: size, height: size }, [
-      h('path', { fill: color, d: LOCATION_ON_PATH }),
-    ]),
+    h(
+      'svg',
+      { xmlns: 'http://www.w3.org/2000/svg', viewBox: '0 0 24 24', width: size, height: size },
+      [h('path', { fill: color, d: LOCATION_ON_PATH })],
+    ),
     el,
   )
   const html = el.innerHTML
@@ -281,18 +310,14 @@ function syncRefMarkers() {
 }
 
 // ─── Proximity check ────────────────────────────────────────────────────────────
-function distanceMeters(
-  a: { lat: number; lng: number },
-  b: { lat: number; lng: number },
-): number {
+function distanceMeters(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
   const R = 6371000
   const toRad = (d: number) => (d * Math.PI) / 180
   const dLat = toRad(b.lat - a.lat)
   const dLng = toRad(b.lng - a.lng)
   const lat1 = toRad(a.lat)
   const lat2 = toRad(b.lat)
-  const x =
-    Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2
   return 2 * R * Math.asin(Math.sqrt(x))
 }
 
