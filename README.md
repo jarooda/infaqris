@@ -74,6 +74,7 @@ cp .env.example .env
 | `SMTP_PORT`                         | SMTP server port (e.g. `587`)                                                        |
 | `SMTP_EMAIL`                        | SMTP sender address                                                                  |
 | `SMTP_PASSWORD`                     | SMTP sender password                                                                 |
+| `GOOGLE_SPREADSHEET_PUBLIC_URL`     | Published Google Sheets URL (public view, email columns excluded) — shown in FAQ     |
 
 ### 4. Start the dev server
 

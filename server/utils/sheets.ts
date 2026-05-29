@@ -57,7 +57,7 @@ export async function getLocations() {
       latest_editor: row[9] ?? '',
       status: row[10] ?? '1',
     }))
-    .filter((loc) => loc.id && loc.status !== '0')
+    .filter((loc) => loc.id && loc.status === '1')
 }
 
 export async function addLocation(data: {
