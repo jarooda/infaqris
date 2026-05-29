@@ -1,7 +1,7 @@
 import { addLocation } from '../utils/sheets'
 import { requireAuth } from '../utils/auth'
 import { isAdminEmail } from '../utils/admin'
-import { sendPendingNotification } from '../utils/mailer'
+import { sendPendingNotification, sendSubmissionConfirmation } from '../utils/mailer'
 
 const ipStore = new Map<string, number[]>()
 const LIMIT = 5
@@ -52,16 +52,24 @@ export default defineEventHandler(async (event) => {
 
   // Await before returning — on Vercel serverless the function is terminated
   // as soon as the response is sent, so fire-and-forget never completes.
+  // Admin submissions are auto-approved — no emails needed.
+  // For everyone else: notify the admin, and confirm receipt to the submitter.
   if (!admin) {
-    await sendPendingNotification({
-      id: location.id,
-      name: location.name,
-      description: location.description,
-      latitude: location.latitude,
-      longitude: location.longitude,
-      creator: location.creator,
-      created_at: location.created_at,
-    }).catch((err) => console.error('[mailer] Failed to send notification:', err))
+    await Promise.all([
+      sendPendingNotification({
+        id: location.id,
+        name: location.name,
+        description: location.description,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        creator: location.creator,
+        created_at: location.created_at,
+      }).catch((err) => console.error('[mailer] Failed to send notification:', err)),
+      sendSubmissionConfirmation({
+        name: location.name,
+        creator: location.creator,
+      }).catch((err) => console.error('[mailer] Failed to send confirmation:', err)),
+    ])
   }
 
   return location
