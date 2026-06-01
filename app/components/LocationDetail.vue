@@ -48,6 +48,7 @@
       <!-- QRIS Info (always shown when qris data is present) -->
       <div class="p-4 pt-3 space-y-2">
         <template v-if="qrisInfo">
+          <!-- Primary 4 fields -->
           <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
             <div>
               <span class="text-gray-400 dark:text-gray-500">Merchant</span>
@@ -56,6 +57,15 @@
                 :title="qrisInfo.merchantName"
               >
                 {{ qrisInfo.merchantName || '—' }}
+              </p>
+            </div>
+            <div>
+              <span class="text-gray-400 dark:text-gray-500">Kota / City</span>
+              <p
+                class="text-gray-700 dark:text-gray-300 font-medium truncate"
+                :title="qrisInfo.city"
+              >
+                {{ qrisInfo.city || '—' }}
               </p>
             </div>
             <div>
@@ -68,22 +78,89 @@
               </p>
             </div>
             <div>
-              <span class="text-gray-400 dark:text-gray-500">Merchant ID</span>
-              <p
-                class="text-gray-700 dark:text-gray-300 font-mono truncate"
-                :title="qrisInfo.merchantId"
-              >
-                {{ qrisInfo.merchantId || '—' }}
+              <span class="text-gray-400 dark:text-gray-500">MCC</span>
+              <p class="text-gray-700 dark:text-gray-300 font-medium truncate">
+                {{
+                  qrisInfo.mcc
+                    ? `${qrisInfo.mcc}${qrisInfo.mccLabel ? ` · ${qrisInfo.mccLabel}` : ''}`
+                    : '—'
+                }}
               </p>
             </div>
-            <div>
-              <span class="text-gray-400 dark:text-gray-500">Kota / City</span>
-              <p
-                class="text-gray-700 dark:text-gray-300 font-medium truncate"
-                :title="qrisInfo.city"
+          </div>
+
+          <!-- MCC mismatch warning -->
+          <div
+            v-if="qrisInfo.mcc && !['8661', '8398'].includes(qrisInfo.mcc)"
+            class="flex items-start gap-2 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-3 py-2"
+          >
+            <Icon name="material-symbols:warning-outline" class="w-4 h-4 shrink-0 mt-0.5" />
+            <span>
+              QRIS ini terdaftar sebagai
+              <strong>{{ qrisInfo.mccLabel || 'kategori non-keagamaan' }}</strong
+              >, bukan sebagai masjid atau organisasi keagamaan. Pastikan tujuan donasi sesuai
+              sebelum membayar.
+              <em class="block mt-0.5 text-amber-600 dark:text-amber-500">
+                This QRIS is registered under
+                <strong>{{ qrisInfo.mccLabel || 'a non-religious category' }}</strong
+                >, not as a mosque or religious organization. Verify the donation recipient before
+                paying.
+              </em>
+              <NuxtLink
+                to="/faq#mcc"
+                class="inline-flex items-center gap-0.5 mt-1 text-blue-600 dark:text-blue-400 hover:underline"
               >
-                {{ qrisInfo.city || '—' }}
-              </p>
+                <Icon name="material-symbols:info-outline" class="w-3 h-3" />
+                Apa itu MCC?
+              </NuxtLink>
+            </span>
+          </div>
+
+          <!-- Collapsible extra fields -->
+          <div
+            v-if="qrisInfo.merchantId || qrisInfo.type || qrisInfo.postalCode || qrisInfo.amount"
+            class="text-xs"
+          >
+            <button
+              class="flex items-center gap-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors mt-1"
+              @click="showMoreQris = !showMoreQris"
+            >
+              <Icon
+                :name="
+                  showMoreQris ? 'material-symbols:expand-less' : 'material-symbols:expand-more'
+                "
+                class="w-3.5 h-3.5"
+              />
+              {{ showMoreQris ? 'Sembunyikan' : 'Lihat detail lain' }}
+            </button>
+            <div v-if="showMoreQris" class="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-2">
+              <div v-if="qrisInfo.merchantId" class="col-span-2">
+                <span class="text-gray-400 dark:text-gray-500">Merchant ID</span>
+                <p
+                  class="text-gray-700 dark:text-gray-300 font-mono truncate"
+                  :title="qrisInfo.merchantId"
+                >
+                  {{ qrisInfo.merchantId }}
+                </p>
+              </div>
+              <div v-if="qrisInfo.type">
+                <span class="text-gray-400 dark:text-gray-500">Tipe QRIS</span>
+                <p class="text-gray-700 dark:text-gray-300 font-medium">
+                  {{ qrisInfo.type === 'static' ? 'Statis' : 'Dinamis' }}
+                </p>
+              </div>
+              <div v-if="qrisInfo.postalCode">
+                <span class="text-gray-400 dark:text-gray-500">Kode Pos</span>
+                <p class="text-gray-700 dark:text-gray-300 font-medium">
+                  {{ qrisInfo.postalCode }}
+                </p>
+              </div>
+              <div v-if="qrisInfo.amount" class="col-span-2">
+                <span class="text-gray-400 dark:text-gray-500">Nominal</span>
+                <p class="text-gray-700 dark:text-gray-300 font-medium">
+                  Rp {{ Number(qrisInfo.amount).toLocaleString('id-ID') }}
+                </p>
+              </div>
             </div>
           </div>
         </template>
@@ -213,6 +290,7 @@ const confirmingDelete = ref(false)
 const deleteConfirmText = ref('')
 const deleting = ref(false)
 const deleteError = ref('')
+const showMoreQris = ref(false)
 
 const isPending = computed(() => props.location.status === '2')
 const qrisInfo = computed(() => parseQris(props.location.qris))

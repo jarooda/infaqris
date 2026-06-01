@@ -41,6 +41,9 @@ importers:
       leaflet.markercluster:
         specifier: ^1.5.3
         version: 1.5.3(leaflet@1.9.4)
+      merchant-category-code:
+        specifier: ^1.0.1
+        version: 1.0.1
       nodemailer:
         specifier: ^8.0.9
         version: 8.0.9
@@ -4401,6 +4404,9 @@ packages:
   meow@13.2.0:
     resolution: {integrity: sha512-pxQJQzB6djGPXh08dacEloMFopsOqGVRKFPYvPOt9XDZ1HasbgDZA74CJGreSU4G3Ak7EFJGoiH2auq+yXISgA==}
     engines: {node: '>=18'}
+
+  merchant-category-code@1.0.1:
+    resolution: {integrity: sha512-UQ1o3hrb/Axpc5Y/tuwB+cz3wuVEvyzwWjc6H155IYbHLVKdkT8QlSoVGo4gttPZhrw2Mc6U9rxNhJo1be8IOA==}
 
   merge-stream@2.0.0:
     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
@@ -10645,6 +10651,8 @@ snapshots:
   mdn-data@2.27.1: {}
 
   meow@13.2.0: {}
+
+  merchant-category-code@1.0.1: {}
 
   merge-stream@2.0.0: {}
 

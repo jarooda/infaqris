@@ -127,6 +127,21 @@ const faqs: FaqItem[] = [
       <em class="text-gray-500 dark:text-gray-400"> / We provide several layers to help you verify before donating. First, automatic QRIS info — every entry shows the registered merchant name, issuing bank, merchant ID, and city; cross-check this against the mosque or prayer room you intend to donate to. Second, admin moderation — submissions from regular users enter a review queue and only appear on the map once approved. During review, admins verify the merchant name and city shown in the QRIS by cross-referencing the pinned location on the map using satellite or Street View — confirming the registered name matches the actual building. Third, contributor accountability — every entry records who added it and when. That said, we cannot guarantee absolute accuracy since data is crowdsourced and physical QR codes may change after submission. Always check the merchant name shown before donating. If in doubt, ask the local mosque administrator directly.</em>`,
   },
   {
+    id: 'mcc',
+    question:
+      'Apa itu MCC yang tertera di info QRIS? <em class="font-normal text-gray-500 dark:text-gray-400">/ What is the MCC shown in QRIS info?</em>',
+    answer: `<strong>MCC (Merchant Category Code)</strong> adalah kode 4 digit yang ditetapkan oleh bank saat mendaftarkan QRIS, yang mengklasifikasikan jenis usaha atau organisasi pemilik QRIS tersebut — seperti restoran, toko retail, hotel, atau organisasi keagamaan.
+      <br><br>
+      Untuk masjid, mushola, atau tempat ibadah, MCC yang seharusnya terdaftar adalah:
+      <ul style="list-style:disc;padding-left:1.25rem;margin-top:0.5rem;margin-bottom:0.5rem">
+        <li><strong>8661</strong> — Religious Organizations (Organisasi Keagamaan)</li>
+        <li><strong>8398</strong> — Charitable and Social Service Organizations (Lembaga Sosial / Amal)</li>
+      </ul>
+      Jika MCC yang tertera berbeda dari kedua kode di atas — misalnya <strong>5992</strong> (Florists) atau <strong>5812</strong> (Eating Places) — QRIS tersebut terdaftar dalam kategori berbeda dari yang Anda harapkan. Ini tidak selalu berarti penipuan; bisa jadi kesalahan pendaftaran oleh bank atau masjid yang mendaftar menggunakan akun usaha lain. Namun sebaiknya Anda memverifikasi terlebih dahulu sebelum berdonasi — cocokkan nama merchant yang tertera dengan nama masjid yang dituju, atau tanyakan langsung kepada pengurus.
+      <br><br>
+      <em class="text-gray-500 dark:text-gray-400"><strong>MCC (Merchant Category Code)</strong> is a 4-digit code assigned by the bank when registering a QRIS, classifying the type of business or organization — such as a restaurant, retail store, hotel, or religious organization. For mosques and prayer rooms, the expected MCCs are <strong>8661</strong> (Religious Organizations) or <strong>8398</strong> (Charitable and Social Service Organizations). If a different MCC appears — e.g. 5992 (Florists) or 5812 (Eating Places) — the QRIS is registered under a different category than expected. This isn't necessarily fraud; it may be a registration error. Always verify the merchant name and, if in doubt, ask the local administrator before donating.</em>`,
+  },
+  {
     id: 'why-login',
     question:
       'Kenapa harus login? <em class="font-normal text-gray-500 dark:text-gray-400">/ Why do I need to login?</em>',
