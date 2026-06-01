@@ -52,6 +52,7 @@
             <div
               class="p-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl"
             >
+              <!-- Primary 4 fields -->
               <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
                 <div>
                   <span class="text-gray-400 dark:text-gray-500">Merchant</span>
@@ -60,6 +61,15 @@
                     :title="parsedQris.merchantName"
                   >
                     {{ parsedQris.merchantName || '—' }}
+                  </p>
+                </div>
+                <div>
+                  <span class="text-gray-400 dark:text-gray-500">Kota / City</span>
+                  <p
+                    class="text-gray-700 dark:text-gray-300 font-medium truncate"
+                    :title="parsedQris.city"
+                  >
+                    {{ parsedQris.city || '—' }}
                   </p>
                 </div>
                 <div>
@@ -72,22 +82,67 @@
                   </p>
                 </div>
                 <div>
-                  <span class="text-gray-400 dark:text-gray-500">Merchant ID</span>
-                  <p
-                    class="text-gray-700 dark:text-gray-300 font-mono truncate"
-                    :title="parsedQris.merchantId"
-                  >
-                    {{ parsedQris.merchantId || '—' }}
+                  <span class="text-gray-400 dark:text-gray-500">MCC</span>
+                  <p class="text-gray-700 dark:text-gray-300 font-medium truncate">
+                    {{
+                      parsedQris.mcc
+                        ? `${parsedQris.mcc}${parsedQris.mccLabel ? ` · ${parsedQris.mccLabel}` : ''}`
+                        : '—'
+                    }}
                   </p>
                 </div>
-                <div>
-                  <span class="text-gray-400 dark:text-gray-500">Kota / City</span>
-                  <p
-                    class="text-gray-700 dark:text-gray-300 font-medium truncate"
-                    :title="parsedQris.city"
-                  >
-                    {{ parsedQris.city || '—' }}
-                  </p>
+              </div>
+
+              <!-- Collapsible extra fields -->
+              <div
+                v-if="
+                  parsedQris.merchantId ||
+                  parsedQris.type ||
+                  parsedQris.postalCode ||
+                  parsedQris.amount
+                "
+                class="text-xs mt-2"
+              >
+                <button
+                  class="flex items-center gap-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  @click="showMoreQris = !showMoreQris"
+                >
+                  <Icon
+                    :name="
+                      showMoreQris ? 'material-symbols:expand-less' : 'material-symbols:expand-more'
+                    "
+                    class="w-3.5 h-3.5"
+                  />
+                  {{ showMoreQris ? 'Sembunyikan' : 'Lihat detail lain' }}
+                </button>
+                <div v-if="showMoreQris" class="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-2">
+                  <div v-if="parsedQris.merchantId" class="col-span-2">
+                    <span class="text-gray-400 dark:text-gray-500">Merchant ID</span>
+                    <p
+                      class="text-gray-700 dark:text-gray-300 font-mono truncate"
+                      :title="parsedQris.merchantId"
+                    >
+                      {{ parsedQris.merchantId }}
+                    </p>
+                  </div>
+                  <div v-if="parsedQris.type">
+                    <span class="text-gray-400 dark:text-gray-500">Tipe QRIS</span>
+                    <p class="text-gray-700 dark:text-gray-300 font-medium">
+                      {{ parsedQris.type === 'static' ? 'Statis' : 'Dinamis' }}
+                    </p>
+                  </div>
+                  <div v-if="parsedQris.postalCode">
+                    <span class="text-gray-400 dark:text-gray-500">Kode Pos</span>
+                    <p class="text-gray-700 dark:text-gray-300 font-medium">
+                      {{ parsedQris.postalCode }}
+                    </p>
+                  </div>
+                  <div v-if="parsedQris.amount" class="col-span-2">
+                    <span class="text-gray-400 dark:text-gray-500">Nominal</span>
+                    <p class="text-gray-700 dark:text-gray-300 font-medium">
+                      Rp {{ Number(parsedQris.amount).toLocaleString('id-ID') }}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -203,6 +258,7 @@ const form = reactive({
   location: null as { lat: number; lng: number } | null,
 })
 
+const showMoreQris = ref(false)
 const qrScannerRef = ref<{ reset: () => void } | null>(null)
 const turnstileRef = ref<HTMLElement | null>(null)
 const turnstileToken = ref('')

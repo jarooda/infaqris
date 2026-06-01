@@ -1,8 +1,15 @@
+import lookupMcc from 'merchant-category-code'
+
 export interface QrisInfo {
   merchantName: string
   merchantId: string
   city: string
   bank: string
+  type?: 'static' | 'dynamic'
+  postalCode?: string
+  mcc?: string
+  mccLabel?: string
+  amount?: string
 }
 
 const BANK_MAP: Record<string, string> = {
@@ -70,7 +77,22 @@ export function parseQris(qris: string): QrisInfo | null {
 
     if (!merchantName && !merchantId) return null
 
-    return { merchantName, merchantId, city, bank }
+    // Tag 01: point of initiation — 11 = static, 12 = dynamic
+    const initMethod = outer.get('01')
+    const type: QrisInfo['type'] =
+      initMethod === '11' ? 'static' : initMethod === '12' ? 'dynamic' : undefined
+
+    // Tag 52: merchant category code
+    const mcc = outer.get('52') ?? undefined
+    const mccLabel = mcc ? (lookupMcc(mcc)?.edited_description ?? undefined) : undefined
+
+    // Tag 54: transaction amount (only in dynamic QRIS)
+    const amount = outer.get('54') ?? undefined
+
+    // Tag 61: postal code
+    const postalCode = outer.get('61') ?? undefined
+
+    return { merchantName, merchantId, city, bank, type, mcc, mccLabel, amount, postalCode }
   } catch {
     return null
   }

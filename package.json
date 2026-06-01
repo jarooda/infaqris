@@ -34,6 +34,7 @@
     "jalutils": "^1.0.1",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
+    "merchant-category-code": "^1.0.1",
     "nodemailer": "^8.0.9",
     "nuxt": "^4.4.6",
     "qrcode": "^1.5.4",

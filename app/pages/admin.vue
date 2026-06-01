@@ -171,23 +171,38 @@
                 </td>
 
                 <!-- QRIS Info -->
-                <td class="px-4 py-3 max-w-[200px]">
+                <td class="px-4 py-3 max-w-55">
                   <template v-if="loc._qris">
                     <div class="font-medium text-gray-900 dark:text-gray-200 truncate text-xs">
                       {{ loc._qris.merchantName }}
                     </div>
                     <div class="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5">
-                      {{ loc._qris.bank }}
+                      {{ loc._qris.city
+                      }}<template v-if="loc._qris.postalCode"> {{ loc._qris.postalCode }}</template>
                     </div>
                     <div class="text-xs text-gray-400 dark:text-gray-500 truncate">
-                      {{ loc._qris.city }} · {{ loc._qris.merchantId }}
+                      {{ loc._qris.bank }}
+                    </div>
+                    <div
+                      class="text-xs truncate mt-0.5"
+                      :class="
+                        loc._qris.mcc && !['8661', '8398'].includes(loc._qris.mcc)
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-gray-400 dark:text-gray-500'
+                      "
+                    >
+                      <template v-if="loc._qris.mcc">
+                        {{ loc._qris.mcc
+                        }}<template v-if="loc._qris.mccLabel"> · {{ loc._qris.mccLabel }}</template>
+                      </template>
+                      <template v-else>—</template>
                     </div>
                   </template>
                   <span v-else class="text-xs text-gray-300 dark:text-gray-600">—</span>
                 </td>
 
                 <!-- Kontributor -->
-                <td class="px-4 py-3 max-w-[160px]">
+                <td class="px-4 py-3 max-w-40">
                   <div class="text-xs text-gray-700 dark:text-gray-400 truncate">
                     {{ loc.creator || '—' }}
                   </div>
