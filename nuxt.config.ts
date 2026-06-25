@@ -23,7 +23,7 @@ export default defineNuxtConfig({
       name: 'InfaQRIS',
       short_name: 'InfaQRIS',
       description: 'Crowdsourced QRIS location tracker',
-      theme_color: '#2563eb',
+      theme_color: '#157053',
       background_color: '#ffffff',
       display: 'standalone',
       start_url: '/',
