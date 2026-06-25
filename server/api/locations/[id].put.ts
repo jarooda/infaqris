@@ -1,6 +1,7 @@
 import { isNumber } from 'jalutils/type'
 import { getLocations, updateLocation } from '../../utils/sheets'
 import { requireAdmin } from '../../utils/admin'
+import { sendLocationUpdatedNotification } from '../../utils/mailer'
 
 export default defineEventHandler(async (event) => {
   const email = await requireAdmin(event)
@@ -27,7 +28,7 @@ export default defineEventHandler(async (event) => {
   const current = all.find((l) => l.id === id)
   const newStatus = current?.status === '2' ? '1' : undefined
 
-  return await updateLocation(
+  const updated = await updateLocation(
     id,
     {
       name: body.name.trim(),
@@ -39,4 +40,16 @@ export default defineEventHandler(async (event) => {
     email,
     newStatus,
   )
+
+  if (current?.creator && current.creator !== email) {
+    await sendLocationUpdatedNotification({
+      name: updated.name,
+      description: updated.description,
+      latitude: updated.latitude,
+      longitude: updated.longitude,
+      creator: current.creator,
+    }).catch((err) => console.error('[mailer] Failed to send update notification:', err))
+  }
+
+  return updated
 })
