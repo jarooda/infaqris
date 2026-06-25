@@ -5,6 +5,9 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   modules: ['@nuxt/icon', '@vite-pwa/nuxt', '@nuxt/eslint'],
   devtools: { enabled: true },
+  // JLDS components are imported explicitly via their index.ts barrels, so keep
+  // them out of Nuxt's component auto-import (avoids duplicate-name warnings).
+  components: [{ path: '~/components', ignore: ['**/ui/**'] }],
   css: ['./app/assets/css/main.css'],
   vite: {
     plugins: [tailwindcss()],

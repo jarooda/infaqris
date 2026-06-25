@@ -1,10 +1,12 @@
 <template>
   <VitePwaManifest />
   <NuxtPage />
-  <Toast />
+  <Toaster position="top-center" />
 </template>
 
 <script setup lang="ts">
+import { Toaster } from '~/components/ui/toast'
+
 useHead({
   link: [
     { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
