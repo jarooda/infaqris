@@ -1,35 +1,28 @@
 <template>
-  <div
-    class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/50"
-    @click.self="$emit('close')"
-  >
-    <div
-      class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl w-80 flex flex-col items-center gap-4"
-    >
+  <Dialog :open="true" size="sm" :show-close="false" @close="$emit('close')">
+    <div class="flex flex-col items-center gap-4 py-6 text-center">
       <img src="/android-chrome-192x192.png" alt="InfaQRIS" class="w-12 h-12 rounded-xl" />
-      <div class="text-center">
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Sign in</h2>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">To add QRIS locations</p>
+      <div>
+        <h2 class="text-lg font-semibold text-(--text-primary)">Sign in</h2>
+        <p class="text-sm text-(--text-secondary) mt-1">To add QRIS locations</p>
       </div>
-      <div ref="gsiButtonRef" class="flex justify-center min-h-[44px]" />
-      <button
-        class="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-        @click="$emit('close')"
-      >
-        Cancel
-      </button>
+      <div ref="gsiButtonRef" class="flex justify-center min-h-11" />
+      <Button variant="ghost" size="sm" @click="$emit('close')">Cancel</Button>
       <NuxtLink
         to="/privacy"
-        class="text-xs text-gray-400 dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+        class="text-xs text-(--text-tertiary) hover:text-(--accent) transition-colors"
         @click="$emit('close')"
       >
         Kebijakan Privasi <em>/ Privacy Policy</em>
       </NuxtLink>
     </div>
-  </div>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
+import { Dialog } from '~/components/ui/dialog'
+import { Button } from '~/components/ui/button'
+
 defineEmits<{ close: [] }>()
 
 const gsiButtonRef = ref<HTMLElement | null>(null)

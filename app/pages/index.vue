@@ -1,14 +1,12 @@
 <template>
-  <div class="flex flex-col md:flex-row h-dvh overflow-hidden bg-gray-50 dark:bg-gray-900">
+  <div class="flex flex-col md:flex-row h-dvh overflow-hidden bg-(--bg-app)">
     <!-- Tab bar: mobile only -->
-    <div
-      class="flex md:hidden border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shrink-0"
-    >
+    <div class="flex md:hidden border-b border-(--border-default) bg-(--surface-card) shrink-0">
       <button
         :class="
           activeTab === 'list'
-            ? 'border-b-2 border-blue-600 text-blue-600 font-medium'
-            : 'text-gray-500 dark:text-gray-400'
+            ? 'border-b-2 border-(--accent) text-(--accent) font-medium'
+            : 'text-(--text-tertiary)'
         "
         class="flex-1 py-3 text-sm flex items-center justify-center gap-1.5"
         @click="activeTab = 'list'"
@@ -19,8 +17,8 @@
       <button
         :class="
           activeTab === 'map'
-            ? 'border-b-2 border-blue-600 text-blue-600 font-medium'
-            : 'text-gray-500 dark:text-gray-400'
+            ? 'border-b-2 border-(--accent) text-(--accent) font-medium'
+            : 'text-(--text-tertiary)'
         "
         class="flex-1 py-3 text-sm flex items-center justify-center gap-1.5"
         @click="activeTab = 'map'"
@@ -33,18 +31,15 @@
     <!-- Left panel -->
     <div
       :class="activeTab === 'list' ? 'flex' : 'hidden md:flex'"
-      class="flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-1 min-h-0 md:flex-none md:shrink-0 w-full md:w-96 overflow-hidden"
+      class="flex-col border-r border-(--border-default) bg-(--surface-card) flex-1 min-h-0 md:flex-none md:shrink-0 w-full md:w-96 overflow-hidden"
     >
       <!-- Offline banner -->
-      <div
-        v-if="!isOnline"
-        class="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-400 text-xs"
-      >
-        <Icon name="material-symbols:wifi-off" class="shrink-0 text-base" />
-        <span>You're offline — changes will sync when reconnected</span>
-      </div>
+      <Banner v-if="!isOnline" tone="warning">
+        <template #icon><Icon name="material-symbols:wifi-off" /></template>
+        You're offline — changes will sync when reconnected
+      </Banner>
 
-      <div class="p-4 border-b border-gray-100 dark:border-gray-700">
+      <div class="p-4 border-b border-(--border-subtle)">
         <!-- Title + controls row -->
         <div class="flex items-start justify-between gap-2 mb-3">
           <div class="flex items-center gap-2 min-w-0">
@@ -54,48 +49,37 @@
               class="w-8 h-8 rounded-lg shrink-0"
             />
             <div class="min-w-0">
-              <h1 class="text-base font-bold text-gray-900 dark:text-gray-100 leading-tight">
-                InfaQRIS
-              </h1>
-              <p class="text-xs text-gray-400 dark:text-gray-500 italic">Scan. Give. Berkah.</p>
+              <h1 class="text-base font-bold text-(--text-primary) leading-tight">InfaQRIS</h1>
+              <p class="text-xs text-(--text-tertiary) italic">Scan. Give. Berkah.</p>
             </div>
           </div>
           <div class="flex items-center gap-1 shrink-0">
             <!-- Pending sync indicator -->
-            <div
+            <Badge
               v-if="pendingCount > 0 || syncing"
-              class="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400"
+              color="warning"
               :title="syncing ? 'Syncing...' : `${pendingCount} change(s) pending sync`"
             >
-              <Icon
-                :name="syncing ? 'material-symbols:sync' : 'material-symbols:cloud-off'"
-                class="text-sm w-3.5 h-3.5"
-                :class="{ 'animate-spin': syncing }"
-              />
-              <span v-if="!syncing && pendingCount > 0" class="text-xs font-medium">{{
-                pendingCount
-              }}</span>
-            </div>
+              <template #icon>
+                <Icon
+                  :name="syncing ? 'material-symbols:sync' : 'material-symbols:cloud-off'"
+                  :class="{ 'animate-spin': syncing }"
+                />
+              </template>
+              <span v-if="!syncing && pendingCount > 0">{{ pendingCount }}</span>
+            </Badge>
             <!-- Install PWA -->
-            <button
-              v-if="canInstall"
-              title="Install InfaQRIS"
-              class="p-1.5 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:text-blue-400 dark:hover:bg-blue-900/20 transition-colors flex justify-center items-center"
-              @click="installPwa"
-            >
-              <Icon name="material-symbols:install-mobile" class="text-xl w-5 h-5" />
-            </button>
+            <IconButton v-if="canInstall" size="sm" title="Install InfaQRIS" @click="installPwa">
+              <Icon name="material-symbols:install-mobile" />
+            </IconButton>
             <!-- Theme toggle -->
-            <button
+            <IconButton
+              size="sm"
               :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-              class="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors flex justify-center items-center"
               @click="toggleTheme"
             >
-              <Icon
-                :name="isDark ? 'material-symbols:light-mode' : 'material-symbols:dark-mode'"
-                class="text-xl w-5 h-5"
-              />
-            </button>
+              <Icon :name="isDark ? 'material-symbols:light-mode' : 'material-symbols:dark-mode'" />
+            </IconButton>
             <!-- Signed in -->
             <template v-if="user">
               <div
@@ -105,88 +89,62 @@
               >
                 {{ user.email[0]?.toUpperCase() }}
               </div>
-              <button
-                title="Sign out"
-                class="p-1.5 rounded-lg text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex justify-center items-center"
-                @click="handleLogout"
-              >
-                <Icon name="material-symbols:logout" class="text-xl h-5 w-5" />
-              </button>
+              <IconButton size="sm" title="Sign out" @click="handleLogout">
+                <Icon name="material-symbols:logout" />
+              </IconButton>
             </template>
             <!-- Not signed in -->
-            <button
+            <IconButton
               v-else
+              size="sm"
               :disabled="!isOnline"
               :title="isOnline ? 'Sign in with Google' : 'Sign in unavailable offline'"
-              class="p-1.5 rounded-lg transition-colors flex justify-center items-center"
-              :class="
-                isOnline
-                  ? 'text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:text-blue-400 dark:hover:bg-blue-900/20'
-                  : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
-              "
               @click="isOnline && (showLogin = true)"
             >
-              <Icon name="material-symbols:login" class="text-xl w-5 h-5" />
-            </button>
+              <Icon name="material-symbols:login" />
+            </IconButton>
           </div>
         </div>
 
         <div class="flex items-center gap-2">
-          <input
+          <Input
             v-model="search"
             type="text"
             placeholder="Search by name or description..."
-            class="flex-1 border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <div class="relative" data-sort-menu>
-            <button
-              :title="`Sort: ${sortLabel}`"
-              class="p-2 rounded-xl border transition-colors flex items-center justify-center"
-              :class="
-                effectiveSort !== 'default'
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                  : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-              "
-              @click="showSortMenu = !showSortMenu"
-            >
-              <Icon name="material-symbols:sort" class="text-lg w-5 h-5" />
-            </button>
-            <div
-              v-if="showSortMenu"
-              class="absolute right-0 top-full mt-1 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-50 overflow-hidden"
-            >
-              <button
-                v-for="opt in sortOptions"
-                v-show="opt.value !== 'distance' || userCenter"
-                :key="opt.value"
-                class="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left transition-colors"
-                :class="
-                  effectiveSort === opt.value
-                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                "
-                @click="sortOptionClicked(opt)"
+            class="flex-1"
+          >
+            <template #icon><Icon name="material-symbols:search" /></template>
+          </Input>
+          <DropdownMenu align="end">
+            <template #trigger>
+              <IconButton
+                :variant="effectiveSort !== 'default' ? 'secondary' : 'ghost'"
+                :title="`Sort: ${sortLabel}`"
               >
-                <Icon :name="opt.icon" class="text-base w-4 h-4 shrink-0" />
+                <Icon name="material-symbols:sort" />
+              </IconButton>
+            </template>
+            <template v-for="opt in sortOptions" :key="opt.value">
+              <DropdownMenuItem
+                v-if="opt.value !== 'distance' || userCenter"
+                @select="sortOptionClicked(opt)"
+              >
+                <template #icon><Icon :name="opt.icon" /></template>
                 {{ opt.label }}
                 <Icon
                   v-if="effectiveSort === opt.value"
                   name="material-symbols:check"
-                  class="ml-auto text-base w-4 h-4"
+                  class="ml-auto"
                 />
-              </button>
-            </div>
-          </div>
+              </DropdownMenuItem>
+            </template>
+          </DropdownMenu>
         </div>
       </div>
 
       <div class="flex-1 min-h-0 overflow-y-auto p-3 space-y-2">
         <template v-if="pending">
-          <div
-            v-for="n in 5"
-            :key="n"
-            class="h-20 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse"
-          />
+          <Skeleton v-for="n in 5" :key="n" variant="rect" :height="80" :radius="16" />
         </template>
 
         <template v-else-if="filtered.length">
@@ -200,23 +158,17 @@
           />
         </template>
 
-        <div
-          v-else
-          class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500"
-        >
-          <Icon name="material-symbols:map" class="text-4xl mb-2" />
-          <p class="text-sm">No locations found</p>
-        </div>
+        <EmptyState v-else title="No locations found" description="Try adjusting your search.">
+          <template #icon><Icon name="material-symbols:map" /></template>
+        </EmptyState>
       </div>
 
       <div
-        class="px-4 py-2 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400 flex items-center justify-between gap-2"
+        class="px-4 py-2 border-t border-(--border-subtle) text-xs text-(--text-tertiary) flex items-center justify-between gap-2"
       >
         <span>{{ filtered.length }} of {{ locations?.length ?? 0 }} locations</span>
         <div class="flex items-center gap-2 shrink-0">
-          <NuxtLink to="/faq" class="hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
-            >FAQ</NuxtLink
-          >
+          <NuxtLink to="/faq" class="hover:text-(--accent) transition-colors">FAQ</NuxtLink>
           <span>·</span>
           <span
             >© {{ year }}
@@ -224,7 +176,7 @@
               href="https://jaluwibowo.id"
               target="_blank"
               rel="noopener noreferrer"
-              class="hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+              class="hover:text-(--accent) transition-colors"
               >Jalu Wibowo Aji</a
             ></span
           >
@@ -248,7 +200,7 @@
 
     <!-- FAB -->
     <button
-      class="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-colors z-1001"
+      class="fab fixed bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center z-1001"
       title="Add QRIS"
       @click="user ? (showAdd = true) : (showLogin = true)"
     >
@@ -290,6 +242,13 @@
 <script setup lang="ts">
 import type { QrisLocation } from '~/types'
 import type { SortBy } from '~/composables/useSortPreference'
+import { IconButton } from '~/components/ui/icon-button'
+import { Badge } from '~/components/ui/badge'
+import { Input } from '~/components/ui/input'
+import { Banner } from '~/components/ui/banner'
+import { Skeleton } from '~/components/ui/skeleton'
+import { EmptyState } from '~/components/ui/empty-state'
+import { DropdownMenu, DropdownMenuItem } from '~/components/ui/dropdown-menu'
 
 const route = useRoute()
 const router = useRouter()
@@ -314,7 +273,6 @@ const mapViewRef = ref<{ invalidateSize: () => void } | null>(null)
 const year = new Date().getFullYear()
 
 const { sortBy, setSort, init: initSort } = useSortPreference()
-const showSortMenu = ref(false)
 
 const sortOptions: { value: SortBy; label: string; icon: string }[] = [
   { value: 'default', label: 'Default', icon: 'material-symbols:format-list-numbered' },
@@ -324,7 +282,6 @@ const sortOptions: { value: SortBy; label: string; icon: string }[] = [
 
 function sortOptionClicked(opt: (typeof sortOptions)[number]) {
   setSort(opt.value)
-  showSortMenu.value = false
 }
 
 // 'distance' needs the user's location — if it's unavailable, fall back to
@@ -486,11 +443,6 @@ onMounted(async () => {
   initSort()
   await fetchUser()
   initGsi()
-  document.addEventListener('click', (e) => {
-    if (showSortMenu.value && !(e.target as Element)?.closest?.('[data-sort-menu]')) {
-      showSortMenu.value = false
-    }
-  })
 
   const id = route.query.id as string | undefined
   if (id) selectedId.value = id
@@ -505,3 +457,18 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style scoped>
+.fab {
+  background: var(--accent);
+  color: var(--text-on-brand);
+  box-shadow: var(--shadow-lg);
+  transition: var(--transition-control);
+}
+.fab:hover {
+  background: var(--accent-hover);
+}
+.fab:active {
+  background: var(--accent-active);
+}
+</style>

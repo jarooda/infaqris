@@ -1,22 +1,18 @@
 <template>
-  <div class="min-h-dvh bg-gray-50 dark:bg-gray-900">
+  <div class="min-h-dvh bg-(--bg-app)">
     <!-- Header -->
-    <div
-      class="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700"
-    >
+    <div class="sticky top-0 z-10 bg-(--surface-card) border-b border-(--border-default)">
       <div class="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
         <NuxtLink
           to="/"
-          class="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors"
+          class="p-1.5 rounded-lg text-(--text-secondary) hover:text-(--text-primary) hover:bg-(--surface-hover) transition-colors"
           title="Kembali ke peta"
         >
           <Icon name="material-symbols:arrow-back" class="w-5 h-5" />
         </NuxtLink>
         <div>
-          <h1 class="text-base font-bold text-gray-900 dark:text-gray-100 leading-tight">
-            Kebijakan Privasi
-          </h1>
-          <p class="text-xs text-gray-400 dark:text-gray-500">
+          <h1 class="text-base font-bold text-(--text-primary) leading-tight">Kebijakan Privasi</h1>
+          <p class="text-xs text-(--text-tertiary)">
             <em>Privacy Policy</em>
           </p>
         </div>
@@ -25,24 +21,24 @@
 
     <!-- Content -->
     <div
-      class="max-w-2xl mx-auto px-4 py-8 space-y-8 text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
+      class="max-w-2xl mx-auto px-4 py-8 space-y-8 text-sm text-(--text-secondary) leading-relaxed"
     >
-      <p class="text-xs text-gray-400 dark:text-gray-500">
+      <p class="text-xs text-(--text-tertiary)">
         Terakhir diperbarui: {{ lastUpdated }} ·
         <em>Last updated: {{ lastUpdated }}</em>
       </p>
 
       <section class="space-y-3">
-        <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">
+        <h2 class="text-base font-semibold text-(--text-primary)">
           Data yang kami kumpulkan
-          <em class="font-normal text-gray-500 dark:text-gray-400 text-sm"> / What we collect</em>
+          <em class="font-normal text-(--text-tertiary) text-sm"> / What we collect</em>
         </h2>
         <p>
           Ketika Anda login dengan akun Google, kami menyimpan <strong>alamat email</strong> Anda di
           cookie sesi yang terenkripsi untuk keperluan autentikasi. Email ini juga disimpan di
           Google Sheets sebagai identitas kontributor pada setiap entri yang Anda tambahkan.
         </p>
-        <p class="text-gray-500 dark:text-gray-400">
+        <p class="text-(--text-tertiary)">
           <em>
             When you sign in with Google, we store your <strong>email address</strong> in an
             encrypted session cookie for authentication. This email is also stored in Google Sheets
@@ -53,7 +49,7 @@
           Ketika Anda menambahkan entri baru, kami menyimpan <strong>koordinat lokasi</strong> yang
           Anda tandai di peta, beserta nama dan deskripsi yang Anda tulis.
         </p>
-        <p class="text-gray-500 dark:text-gray-400">
+        <p class="text-(--text-tertiary)">
           <em>
             When you add a new entry, we store the <strong>location coordinates</strong> you pin on
             the map, along with the name and description you provide.
@@ -62,9 +58,9 @@
       </section>
 
       <section class="space-y-3">
-        <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">
+        <h2 class="text-base font-semibold text-(--text-primary)">
           Bagaimana data digunakan
-          <em class="font-normal text-gray-500 dark:text-gray-400 text-sm"> / How it's used</em>
+          <em class="font-normal text-(--text-tertiary) text-sm"> / How it's used</em>
         </h2>
         <ul class="list-disc pl-5 space-y-1">
           <li>Autentikasi — memverifikasi identitas Anda sebelum menerima kontribusi</li>
@@ -74,7 +70,7 @@
           </li>
           <li>Akuntabilitas — setiap entri mencatat siapa yang menambahkan dan kapan</li>
         </ul>
-        <ul class="list-disc pl-5 space-y-1 text-gray-500 dark:text-gray-400">
+        <ul class="list-disc pl-5 space-y-1 text-(--text-tertiary)">
           <li><em>Authentication — verifying your identity before accepting contributions</em></li>
           <li>
             <em>Moderation — admins use contributor email to review and follow up if needed</em>
@@ -85,7 +81,7 @@
           Email Anda <strong>tidak ditampilkan</strong> kepada pengguna lain melalui API atau
           halaman publik aplikasi ini.
         </p>
-        <p class="text-gray-500 dark:text-gray-400">
+        <p class="text-(--text-tertiary)">
           <em>
             Your email is <strong>not exposed</strong> to other users via the API or any public page
             of this app.
@@ -94,9 +90,9 @@
       </section>
 
       <section class="space-y-3">
-        <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">
+        <h2 class="text-base font-semibold text-(--text-primary)">
           Di mana data disimpan
-          <em class="font-normal text-gray-500 dark:text-gray-400 text-sm"> / Where it's stored</em>
+          <em class="font-normal text-(--text-tertiary) text-sm"> / Where it's stored</em>
         </h2>
         <p>
           Semua data lokasi dan informasi kontributor disimpan di
@@ -104,7 +100,7 @@
           diakses oleh admin. Tampilan publik yang ditautkan di FAQ hanya menampilkan nama lokasi,
           koordinat, dan waktu kontribusi — tanpa email.
         </p>
-        <p class="text-gray-500 dark:text-gray-400">
+        <p class="text-(--text-tertiary)">
           <em>
             All location data and contributor information is stored in
             <strong>Google Sheets</strong>
@@ -115,15 +111,15 @@
       </section>
 
       <section class="space-y-3">
-        <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">
+        <h2 class="text-base font-semibold text-(--text-primary)">
           Berapa lama data disimpan
-          <em class="font-normal text-gray-500 dark:text-gray-400 text-sm"> / Retention</em>
+          <em class="font-normal text-(--text-tertiary) text-sm"> / Retention</em>
         </h2>
         <p>
           Data disimpan selama platform ini aktif beroperasi, atau hingga Anda meminta penghapusan.
           Cookie sesi berakhir dalam 7 hari atau saat Anda logout.
         </p>
-        <p class="text-gray-500 dark:text-gray-400">
+        <p class="text-(--text-tertiary)">
           <em>
             Data is retained for as long as this platform is active, or until you request deletion.
             Session cookies expire after 7 days or when you log out.
@@ -132,23 +128,23 @@
       </section>
 
       <section class="space-y-3">
-        <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">
+        <h2 class="text-base font-semibold text-(--text-primary)">
           Hak Anda
-          <em class="font-normal text-gray-500 dark:text-gray-400 text-sm"> / Your rights</em>
+          <em class="font-normal text-(--text-tertiary) text-sm"> / Your rights</em>
         </h2>
         <p>
           Anda berhak meminta penghapusan data pribadi Anda (email dan entri yang Anda
           kontribusikan) kapan saja. Hubungi kami di
-          <a href="mailto:me@jaluwibowo.id" class="text-blue-600 dark:text-blue-400 hover:underline"
+          <a href="mailto:me@jaluwibowo.id" class="text-(--accent) hover:underline"
             >me@jaluwibowo.id</a
           >
           dengan subjek "Hapus data saya".
         </p>
-        <p class="text-gray-500 dark:text-gray-400">
+        <p class="text-(--text-tertiary)">
           <em>
             You may request deletion of your personal data (email and any entries you contributed)
             at any time. Contact us at
-            <a href="mailto:me@jaluwibowo.id" class="text-blue-400 hover:underline"
+            <a href="mailto:me@jaluwibowo.id" class="text-(--accent) hover:underline"
               >me@jaluwibowo.id</a
             >
             with the subject "Delete my data".
@@ -157,11 +153,9 @@
       </section>
 
       <section class="space-y-3">
-        <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">
+        <h2 class="text-base font-semibold text-(--text-primary)">
           Layanan pihak ketiga
-          <em class="font-normal text-gray-500 dark:text-gray-400 text-sm">
-            / Third-party services</em
-          >
+          <em class="font-normal text-(--text-tertiary) text-sm"> / Third-party services</em>
         </h2>
         <ul class="list-disc pl-5 space-y-1">
           <li>
@@ -170,7 +164,7 @@
               href="https://policies.google.com/privacy"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-blue-600 dark:text-blue-400 hover:underline"
+              class="text-(--accent) hover:underline"
               >Kebijakan Privasi Google</a
             >
           </li>
@@ -187,7 +181,7 @@
             pribadi yang dikirim
           </li>
         </ul>
-        <ul class="list-disc pl-5 space-y-1 text-gray-500 dark:text-gray-400">
+        <ul class="list-disc pl-5 space-y-1 text-(--text-tertiary)">
           <li>
             <em
               ><strong>Google Sign-In</strong> — used for authentication; subject to
@@ -195,7 +189,7 @@
                 href="https://policies.google.com/privacy"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-blue-400 hover:underline"
+                class="text-(--accent) hover:underline"
                 >Google's Privacy Policy</a
               ></em
             >
@@ -222,20 +216,20 @@
       </section>
 
       <section class="space-y-3">
-        <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">
+        <h2 class="text-base font-semibold text-(--text-primary)">
           Kontak
-          <em class="font-normal text-gray-500 dark:text-gray-400 text-sm"> / Contact</em>
+          <em class="font-normal text-(--text-tertiary) text-sm"> / Contact</em>
         </h2>
         <p>
           Pertanyaan atau permintaan terkait privasi: hubungi
-          <a href="mailto:me@jaluwibowo.id" class="text-blue-600 dark:text-blue-400 hover:underline"
+          <a href="mailto:me@jaluwibowo.id" class="text-(--accent) hover:underline"
             >me@jaluwibowo.id</a
           >.
         </p>
-        <p class="text-gray-500 dark:text-gray-400">
+        <p class="text-(--text-tertiary)">
           <em>
             Privacy questions or requests: contact
-            <a href="mailto:me@jaluwibowo.id" class="text-blue-400 hover:underline"
+            <a href="mailto:me@jaluwibowo.id" class="text-(--accent) hover:underline"
               >me@jaluwibowo.id</a
             >.
           </em>
@@ -245,14 +239,14 @@
 
     <!-- Footer -->
     <div
-      class="max-w-2xl mx-auto px-4 py-6 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400 text-center"
+      class="max-w-2xl mx-auto px-4 py-6 border-t border-(--border-default) text-xs text-(--text-tertiary) text-center"
     >
       © {{ year }}
       <a
         href="https://jaluwibowo.id"
         target="_blank"
         rel="noopener noreferrer"
-        class="hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+        class="hover:text-(--accent) transition-colors"
         >Jalu Wibowo Aji</a
       >
     </div>

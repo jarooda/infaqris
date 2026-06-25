@@ -2,7 +2,10 @@ export const useTheme = () => {
   const isDark = useState('theme_dark', () => false)
 
   function apply(dark: boolean) {
-    document.documentElement.classList.toggle('dark', dark)
+    const root = document.documentElement
+    root.classList.toggle('dark', dark)
+    // JLDS flips its design tokens on [data-theme="dark"]; keep both in sync.
+    root.setAttribute('data-theme', dark ? 'dark' : 'light')
   }
 
   function toggle() {

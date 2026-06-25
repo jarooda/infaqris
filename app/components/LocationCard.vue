@@ -1,49 +1,51 @@
 <template>
-  <button
+  <Card
     :id="`card-${location.id}`"
-    :class="[
-      'w-full text-left p-3 rounded-lg border transition-colors',
-      selected
-        ? 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-900/30'
-        : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600 dark:hover:bg-gray-700',
-    ]"
+    interactive
+    role="button"
+    tabindex="0"
+    :aria-pressed="selected"
+    :class="['location-card', { 'location-card--selected': selected }]"
     @click="$emit('click')"
+    @keydown.enter.prevent="$emit('click')"
+    @keydown.space.prevent="$emit('click')"
   >
-    <div class="flex items-center gap-1.5 min-w-0">
-      <p class="font-medium text-gray-900 dark:text-gray-100 truncate">{{ location.name }}</p>
-      <!-- Offline sync pending -->
-      <Icon
-        v-if="location._pending"
-        name="material-symbols:schedule"
-        class="text-xs text-amber-500 dark:text-amber-400 shrink-0"
-        title="Pending sync"
-      />
-      <!-- Moderation pending -->
-      <span
-        v-if="location.status === '2'"
-        class="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 shrink-0 leading-tight"
-        title="Menunggu persetujuan admin / Pending admin approval"
-      >
-        pending
-      </span>
+    <div class="location-card__inner">
+      <div class="flex items-center gap-1.5 min-w-0">
+        <p class="font-medium text-(--text-primary) truncate">{{ location.name }}</p>
+        <!-- Offline sync pending -->
+        <Icon
+          v-if="location._pending"
+          name="material-symbols:schedule"
+          class="text-xs text-(--warning) shrink-0"
+          title="Pending sync"
+        />
+        <!-- Moderation pending -->
+        <Badge
+          v-if="location.status === '2'"
+          color="warning"
+          pill
+          class="shrink-0"
+          title="Menunggu persetujuan admin / Pending admin approval"
+        >
+          pending
+        </Badge>
+      </div>
+      <p v-if="location.description" class="text-sm text-(--text-secondary) mt-0.5 line-clamp-2">
+        {{ location.description }}
+      </p>
+      <p class="text-xs text-(--text-tertiary) mt-1">
+        {{ location.latitude.toFixed(5) }}, {{ location.longitude.toFixed(5) }}
+        <span v-if="distanceLabel"> · {{ distanceLabel }}</span>
+      </p>
     </div>
-    <p
-      v-if="location.description"
-      class="text-sm text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2"
-    >
-      {{ location.description }}
-    </p>
-    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
-      {{ location.latitude.toFixed(5) }}, {{ location.longitude.toFixed(5) }}
-      <span v-if="distanceLabel" class="text-gray-400 dark:text-gray-500">
-        · {{ distanceLabel }}</span
-      >
-    </p>
-  </button>
+  </Card>
 </template>
 
 <script setup lang="ts">
 import type { LocalLocation } from '~/utils/db'
+import { Card } from '~/components/ui/card'
+import { Badge } from '~/components/ui/badge'
 
 const props = defineProps<{
   location: LocalLocation
@@ -68,3 +70,16 @@ const distanceLabel = computed(() => {
   return km < 1 ? `${Math.round(km * 1000)} m away` : `${km.toFixed(1)} km away`
 })
 </script>
+
+<style scoped>
+.location-card {
+  text-align: left;
+}
+.location-card__inner {
+  padding: var(--space-3);
+}
+.location-card--selected {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+</style>

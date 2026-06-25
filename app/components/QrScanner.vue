@@ -1,47 +1,38 @@
 <template>
   <div class="space-y-4">
     <!-- Camera -->
-    <div
-      id="qr-reader-container"
-      class="w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700"
-    />
-    <p v-if="scanError" class="text-sm text-gray-500 dark:text-gray-400 italic">{{ scanError }}</p>
+    <div id="qr-reader-container" class="w-full rounded-lg overflow-hidden bg-(--surface-sunken)" />
+    <p v-if="scanError" class="text-sm text-(--text-secondary) italic">{{ scanError }}</p>
 
     <!-- Divider -->
     <div class="relative">
       <div class="absolute inset-0 flex items-center">
-        <div class="w-full border-t border-gray-200 dark:border-gray-600" />
+        <div class="w-full border-t border-(--border-default)" />
       </div>
       <div class="relative flex justify-center text-xs">
-        <span class="px-2 bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500"
-          >or upload an image</span
-        >
+        <span class="px-2 bg-(--surface-overlay) text-(--text-tertiary)">or upload an image</span>
       </div>
     </div>
 
     <!-- Image upload -->
     <label
       :class="[
-        'flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-xl cursor-pointer transition-colors',
-        decodeError
-          ? 'border-red-300 bg-red-50 dark:bg-red-900/20'
-          : decodeSuccess
-            ? 'border-green-300 bg-green-50 dark:bg-green-900/20'
-            : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:bg-blue-50 dark:hover:border-blue-500 dark:hover:bg-blue-900/20',
+        'qr-dropzone flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-xl cursor-pointer transition-colors',
+        decodeError ? 'qr-dropzone--error' : decodeSuccess ? 'qr-dropzone--success' : '',
       ]"
     >
       <Icon
         :name="decodeSuccess ? 'material-symbols:check-circle' : 'material-symbols:add-a-photo'"
         class="text-3xl mb-1"
-        :class="decodeSuccess ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'"
+        :class="decodeSuccess ? 'text-(--success)' : 'text-(--text-tertiary)'"
       />
       <span
         class="text-sm"
-        :class="decodeSuccess ? 'text-green-600 font-medium' : 'text-gray-500 dark:text-gray-400'"
+        :class="decodeSuccess ? 'text-(--success-text) font-medium' : 'text-(--text-secondary)'"
       >
         {{ decodeSuccess ? 'QR decoded — tap Next to continue' : 'Upload QR code image' }}
       </span>
-      <span v-if="decodeError" class="text-xs text-red-500 mt-1">{{ decodeError }}</span>
+      <span v-if="decodeError" class="text-xs text-(--danger-text) mt-1">{{ decodeError }}</span>
       <input type="file" accept="image/*" class="hidden" @change="onFileUpload" />
     </label>
 
@@ -101,3 +92,30 @@ function reset() {
 
 defineExpose({ reset })
 </script>
+
+<style scoped>
+.qr-dropzone {
+  border-color: var(--border-default);
+  background: var(--surface-card);
+}
+.qr-dropzone:hover {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+.qr-dropzone--error {
+  border-color: var(--danger);
+  background: var(--danger-subtle);
+}
+.qr-dropzone--error:hover {
+  border-color: var(--danger);
+  background: var(--danger-subtle);
+}
+.qr-dropzone--success {
+  border-color: var(--success);
+  background: var(--success-subtle);
+}
+.qr-dropzone--success:hover {
+  border-color: var(--success);
+  background: var(--success-subtle);
+}
+</style>
