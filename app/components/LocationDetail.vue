@@ -1,85 +1,72 @@
 <template>
-  <div class="fixed inset-0 z-2000 flex items-center justify-center p-4 bg-black/50">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+  <Dialog :open="true" size="sm" :show-close="false" @close="$emit('close')">
+    <div class="py-5 space-y-3">
       <!-- Header -->
-      <div class="flex items-start justify-between p-5 pb-3">
+      <div class="flex items-start justify-between">
         <div class="flex-1 min-w-0">
-          <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 truncate">
-            {{ location.name }}
-          </h2>
-          <p v-if="location.description" class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <h2 class="text-xl font-bold text-(--text-primary) truncate">{{ location.name }}</h2>
+          <p v-if="location.description" class="text-sm text-(--text-secondary) mt-1">
             {{ location.description }}
           </p>
           <a
             :href="`https://www.google.com/maps?q=${location.latitude},${location.longitude}`"
             target="_blank"
             rel="noopener noreferrer"
-            class="text-xs text-gray-400 dark:text-gray-500 mt-1 hover:text-blue-500 dark:hover:text-blue-400 transition-colors inline-flex items-center gap-1"
+            class="text-xs text-(--text-tertiary) mt-1 hover:text-(--accent) transition-colors inline-flex items-center gap-1"
           >
             <Icon name="material-symbols:location-on-outline" class="w-3 h-3 shrink-0" />
             {{ location.latitude.toFixed(6) }}, {{ location.longitude.toFixed(6) }}
           </a>
         </div>
-        <button
-          class="ml-3 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-          @click="$emit('close')"
-        >
-          <Icon name="material-symbols:close" class="w-5 h-5" />
-        </button>
+        <IconButton size="sm" class="ml-3" aria-label="Close" @click="$emit('close')">
+          <Icon name="material-symbols:close" />
+        </IconButton>
       </div>
 
       <!-- Pending approval banner -->
-      <div
-        v-if="isPending"
-        class="flex items-center gap-2 px-5 py-3 bg-amber-50 dark:bg-amber-900/20 border-y border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-400 text-sm"
-      >
-        <Icon name="material-symbols:schedule" class="w-4 h-4 shrink-0" />
-        <span>
-          Menunggu persetujuan admin.<br class="sm:hidden" />
-          <em class="text-amber-600 dark:text-amber-500"> / Pending admin approval.</em>
-        </span>
-      </div>
+      <Alert v-if="isPending" tone="warning">
+        <template #icon><Icon name="material-symbols:schedule" /></template>
+        Menunggu persetujuan admin.
+        <em class="text-(--text-tertiary)"> / Pending admin approval.</em>
+      </Alert>
 
       <!-- QR Code (hidden for pending entries) -->
-      <div v-if="!isPending" class="flex flex-col items-center py-4 bg-gray-50 dark:bg-gray-900">
+      <div
+        v-if="!isPending"
+        class="flex flex-col items-center py-4 bg-(--surface-sunken) rounded-xl"
+      >
         <canvas ref="qrCanvas" class="rounded-lg" />
       </div>
 
       <!-- QRIS Info (always shown when qris data is present) -->
-      <div class="p-4 pt-3 space-y-2">
+      <div class="space-y-2">
         <template v-if="qrisInfo">
           <!-- Primary 4 fields -->
           <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
             <div>
-              <span class="text-gray-400 dark:text-gray-500">Merchant</span>
+              <span class="text-(--text-tertiary)">Merchant</span>
               <p
-                class="text-gray-700 dark:text-gray-300 font-medium truncate"
+                class="text-(--text-secondary) font-medium truncate"
                 :title="qrisInfo.merchantName"
               >
                 {{ qrisInfo.merchantName || '—' }}
               </p>
             </div>
             <div>
-              <span class="text-gray-400 dark:text-gray-500">Kota / City</span>
-              <p
-                class="text-gray-700 dark:text-gray-300 font-medium truncate"
-                :title="qrisInfo.city"
-              >
+              <span class="text-(--text-tertiary)">Kota / City</span>
+              <p class="text-(--text-secondary) font-medium truncate" :title="qrisInfo.city">
                 {{ qrisInfo.city || '—' }}
               </p>
             </div>
             <div>
-              <span class="text-gray-400 dark:text-gray-500">Bank</span>
-              <p
-                class="text-gray-700 dark:text-gray-300 font-medium truncate"
-                :title="qrisInfo.bank"
-              >
+              <span class="text-(--text-tertiary)">Bank</span>
+              <p class="text-(--text-secondary) font-medium truncate" :title="qrisInfo.bank">
                 {{ qrisInfo.bank || '—' }}
               </p>
             </div>
             <div>
-              <span class="text-gray-400 dark:text-gray-500">MCC</span>
-              <p class="text-gray-700 dark:text-gray-300 font-medium truncate">
+              <span class="text-(--text-tertiary)">MCC</span>
+              <p class="text-(--text-secondary) font-medium truncate">
                 {{
                   qrisInfo.mcc
                     ? `${qrisInfo.mcc}${qrisInfo.mccLabel ? ` · ${qrisInfo.mccLabel}` : ''}`
@@ -90,31 +77,26 @@
           </div>
 
           <!-- MCC mismatch warning -->
-          <div
-            v-if="qrisInfo.mcc && !['8661', '8398'].includes(qrisInfo.mcc)"
-            class="flex items-start gap-2 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-3 py-2"
-          >
-            <Icon name="material-symbols:warning-outline" class="w-4 h-4 shrink-0 mt-0.5" />
-            <span>
-              QRIS ini terdaftar sebagai
-              <strong>{{ qrisInfo.mccLabel || 'kategori non-keagamaan' }}</strong
-              >, bukan sebagai masjid atau organisasi keagamaan. Pastikan tujuan donasi sesuai
-              sebelum membayar.
-              <em class="block mt-0.5 text-amber-600 dark:text-amber-500">
-                This QRIS is registered under
-                <strong>{{ qrisInfo.mccLabel || 'a non-religious category' }}</strong
-                >, not as a mosque or religious organization. Verify the donation recipient before
-                paying.
-              </em>
-              <NuxtLink
-                to="/faq#mcc"
-                class="inline-flex items-center gap-0.5 mt-1 text-blue-600 dark:text-blue-400 hover:underline"
-              >
-                <Icon name="material-symbols:info-outline" class="w-3 h-3" />
-                Apa itu MCC?
-              </NuxtLink>
-            </span>
-          </div>
+          <Alert v-if="qrisInfo.mcc && !['8661', '8398'].includes(qrisInfo.mcc)" tone="warning">
+            <template #icon><Icon name="material-symbols:warning-outline" /></template>
+            QRIS ini terdaftar sebagai
+            <strong>{{ qrisInfo.mccLabel || 'kategori non-keagamaan' }}</strong
+            >, bukan sebagai masjid atau organisasi keagamaan. Pastikan tujuan donasi sesuai sebelum
+            membayar.
+            <em class="block mt-0.5 text-(--text-tertiary)">
+              This QRIS is registered under
+              <strong>{{ qrisInfo.mccLabel || 'a non-religious category' }}</strong
+              >, not as a mosque or religious organization. Verify the donation recipient before
+              paying.
+            </em>
+            <NuxtLink
+              to="/faq#mcc"
+              class="inline-flex items-center gap-0.5 mt-1 text-(--accent) hover:underline"
+            >
+              <Icon name="material-symbols:info-outline" class="w-3 h-3" />
+              Apa itu MCC?
+            </NuxtLink>
+          </Alert>
 
           <!-- Collapsible extra fields -->
           <div
@@ -122,7 +104,7 @@
             class="text-xs"
           >
             <button
-              class="flex items-center gap-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors mt-1"
+              class="flex items-center gap-1 text-(--text-tertiary) hover:text-(--text-primary) transition-colors mt-1"
               @click="showMoreQris = !showMoreQris"
             >
               <Icon
@@ -135,67 +117,50 @@
             </button>
             <div v-if="showMoreQris" class="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-2">
               <div v-if="qrisInfo.merchantId" class="col-span-2">
-                <span class="text-gray-400 dark:text-gray-500">Merchant ID</span>
-                <p
-                  class="text-gray-700 dark:text-gray-300 font-mono truncate"
-                  :title="qrisInfo.merchantId"
-                >
+                <span class="text-(--text-tertiary)">Merchant ID</span>
+                <p class="text-(--text-secondary) font-mono truncate" :title="qrisInfo.merchantId">
                   {{ qrisInfo.merchantId }}
                 </p>
               </div>
               <div v-if="qrisInfo.type">
-                <span class="text-gray-400 dark:text-gray-500">Tipe QRIS</span>
-                <p class="text-gray-700 dark:text-gray-300 font-medium">
+                <span class="text-(--text-tertiary)">Tipe QRIS</span>
+                <p class="text-(--text-secondary) font-medium">
                   {{ qrisInfo.type === 'static' ? 'Statis' : 'Dinamis' }}
                 </p>
               </div>
               <div v-if="qrisInfo.postalCode">
-                <span class="text-gray-400 dark:text-gray-500">Kode Pos</span>
-                <p class="text-gray-700 dark:text-gray-300 font-medium">
+                <span class="text-(--text-tertiary)">Kode Pos</span>
+                <p class="text-(--text-secondary) font-medium">
                   {{ qrisInfo.postalCode }}
                 </p>
               </div>
               <div v-if="qrisInfo.amount" class="col-span-2">
-                <span class="text-gray-400 dark:text-gray-500">Nominal</span>
-                <p class="text-gray-700 dark:text-gray-300 font-medium">
+                <span class="text-(--text-tertiary)">Nominal</span>
+                <p class="text-(--text-secondary) font-medium">
                   Rp {{ Number(qrisInfo.amount).toLocaleString('id-ID') }}
                 </p>
               </div>
             </div>
           </div>
         </template>
-        <div
-          v-else
-          class="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-3 py-2"
-        >
-          <Icon name="material-symbols:warning-outline" class="w-4 h-4 shrink-0" />
-          <span
-            >QRIS tidak valid — silakan edit atau laporkan. /
-            <em>Invalid QRIS, please edit or report.</em></span
-          >
-        </div>
+        <Alert v-else tone="warning">
+          <template #icon><Icon name="material-symbols:warning-outline" /></template>
+          QRIS tidak valid — silakan edit atau laporkan. /
+          <em>Invalid QRIS, please edit or report.</em>
+        </Alert>
+
         <!-- Edit & Delete: only for admins -->
         <div v-if="isAdmin" class="flex gap-2 pt-1">
-          <button
-            class="flex-1 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl transition-colors"
-            @click="$emit('edit', location)"
-          >
-            Edit
-          </button>
-          <button
-            class="flex-1 py-2 text-sm font-medium text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-colors"
-            @click="confirmingDelete = true"
-          >
-            Delete
-          </button>
+          <Button variant="secondary" full-width @click="$emit('edit', location)">Edit</Button>
+          <Button variant="danger" full-width @click="confirmingDelete = true">Delete</Button>
         </div>
       </div>
 
       <!-- Report link -->
-      <div class="px-4 pb-2 flex justify-center">
+      <div class="flex justify-center">
         <NuxtLink
           to="/faq#report"
-          class="text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+          class="text-xs text-(--text-tertiary) hover:text-(--danger) transition-colors"
         >
           Laporkan data tidak akurat / <em>Report inaccurate data</em>
         </NuxtLink>
@@ -204,10 +169,10 @@
       <!-- Attribution -->
       <div
         v-if="location.created_at"
-        class="px-4 pb-4 border-t border-gray-100 dark:border-gray-700 pt-3 flex items-center justify-between gap-4"
+        class="border-t border-(--border-subtle) pt-3 flex items-center justify-between gap-4"
       >
         <div
-          class="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 cursor-default"
+          class="flex items-center gap-1.5 text-xs text-(--text-tertiary) cursor-default"
           :title="location.creator"
         >
           <Icon name="material-symbols:person-add" class="text-sm shrink-0" />
@@ -215,7 +180,7 @@
         </div>
         <div
           v-if="location.modified_at"
-          class="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 cursor-default"
+          class="flex items-center gap-1.5 text-xs text-(--text-tertiary) cursor-default"
           :title="location.latest_editor"
         >
           <Icon name="material-symbols:edit" class="text-sm shrink-0" />
@@ -223,57 +188,49 @@
         </div>
       </div>
     </div>
-  </div>
+  </Dialog>
 
-  <!-- Delete confirmation popup -->
-  <div
-    v-if="confirmingDelete"
-    class="fixed inset-0 z-2100 flex items-center justify-center p-4 bg-black/60"
+  <!-- Delete confirmation dialog -->
+  <Dialog
+    :open="confirmingDelete"
+    size="sm"
+    title="Hapus lokasi ini?"
+    :show-close="false"
+    @close="cancelDelete"
   >
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm p-6">
-      <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1">
-        Hapus lokasi ini?
-      </h3>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        Tindakan ini tidak dapat dibatalkan. Ketik
-        <span class="font-mono font-semibold text-red-600 dark:text-red-400">DELETE QRIS</span>
-        untuk mengonfirmasi.
-      </p>
-      <input
-        v-model="deleteConfirmText"
-        type="text"
-        placeholder="DELETE QRIS"
-        class="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-mono placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4"
-      />
-      <div class="flex gap-2">
-        <button
-          class="flex-1 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors"
-          @click="cancelDelete"
-        >
-          Cancel
-        </button>
-        <button
-          :disabled="!canConfirmDelete || deleting"
-          :class="[
-            'flex-1 py-2 text-sm font-medium rounded-xl transition-colors',
-            canConfirmDelete && !deleting
-              ? 'bg-red-600 hover:bg-red-700 text-white'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed',
-          ]"
-          @click="handleDelete"
-        >
-          {{ deleting ? 'Deleting...' : 'Confirm' }}
-        </button>
-      </div>
-      <p v-if="deleteError" class="text-xs text-red-500 mt-3 text-center">{{ deleteError }}</p>
-    </div>
-  </div>
+    <p class="text-sm text-(--text-secondary) mb-4">
+      Tindakan ini tidak dapat dibatalkan. Ketik
+      <span class="font-mono font-semibold text-(--danger)">DELETE QRIS</span>
+      untuk mengonfirmasi.
+    </p>
+    <Input
+      v-model="deleteConfirmText"
+      type="text"
+      placeholder="DELETE QRIS"
+      class="font-mono"
+      :invalid="!!deleteConfirmText && !canConfirmDelete"
+    />
+    <p v-if="deleteError" class="text-xs text-(--danger-text) mt-3 text-center">
+      {{ deleteError }}
+    </p>
+    <template #footer>
+      <Button variant="secondary" @click="cancelDelete">Cancel</Button>
+      <Button variant="danger" :disabled="!canConfirmDelete || deleting" @click="handleDelete">
+        {{ deleting ? 'Deleting...' : 'Confirm' }}
+      </Button>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
 import QRCode from 'qrcode'
 import type { QrisLocation } from '~/types'
 import { parseQris } from '~/utils/parseQris'
+import { Dialog } from '~/components/ui/dialog'
+import { Alert } from '~/components/ui/alert'
+import { Button } from '~/components/ui/button'
+import { IconButton } from '~/components/ui/icon-button'
+import { Input } from '~/components/ui/input'
 
 const props = defineProps<{ location: QrisLocation }>()
 const emit = defineEmits<{

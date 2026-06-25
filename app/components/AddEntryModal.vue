@@ -1,239 +1,184 @@
 <template>
-  <div class="fixed inset-0 z-2000 flex items-center justify-center p-4 bg-black/50">
-    <div
-      class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md flex flex-col max-h-[90vh]"
-    >
-      <!-- Header -->
+  <Dialog
+    :open="true"
+    title="Add QRIS"
+    :description="`Step ${step} of 3 — ${stepLabel}`"
+    @close="$emit('close')"
+  >
+    <!-- Step indicators -->
+    <div class="flex gap-1 mb-4">
       <div
-        class="flex items-center justify-between p-5 pb-4 border-b border-gray-200 dark:border-gray-700"
+        v-for="n in 3"
+        :key="n"
+        class="h-1 flex-1 rounded-full transition-colors"
+        :class="n <= step ? 'bg-(--accent)' : 'bg-(--surface-muted)'"
+      />
+    </div>
+
+    <!-- Step 1: QR Scan -->
+    <ClientOnly v-if="step === 1">
+      <QrScanner ref="qrScannerRef" @scanned="onScanned" />
+      <div
+        v-if="form.qris"
+        class="mt-3 p-3 bg-(--success-subtle) border border-(--success) rounded-xl"
       >
-        <div>
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Add QRIS</h2>
-          <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-            Step {{ step }} of 3 — {{ stepLabel }}
-          </p>
-        </div>
-        <button
-          class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-          @click="$emit('close')"
-        >
-          <Icon name="material-symbols:close" class="w-5 h-5" />
-        </button>
+        <p class="text-xs font-medium text-(--success-text) mb-1">QRIS string captured</p>
+        <p class="text-xs text-(--success-text) font-mono break-all line-clamp-3">
+          {{ form.qris }}
+        </p>
       </div>
+    </ClientOnly>
 
-      <!-- Step indicators -->
-      <div class="flex gap-1 px-5 pt-4">
-        <div
-          v-for="n in 3"
-          :key="n"
-          :class="[
-            'h-1 flex-1 rounded-full transition-colors',
-            n <= step ? 'bg-blue-500' : 'bg-gray-200 dark:bg-gray-600',
-          ]"
-        />
-      </div>
-
-      <!-- Body -->
-      <div class="flex-1 overflow-y-auto p-5 pt-4">
-        <!-- Step 1: QR Scan -->
-        <ClientOnly v-if="step === 1">
-          <QrScanner ref="qrScannerRef" @scanned="onScanned" />
-          <div v-if="form.qris" class="mt-3 p-3 bg-green-50 border border-green-200 rounded-xl">
-            <p class="text-xs font-medium text-green-700 mb-1">QRIS string captured</p>
-            <p class="text-xs text-green-600 font-mono break-all line-clamp-3">{{ form.qris }}</p>
-          </div>
-        </ClientOnly>
-
-        <!-- Step 2: Name + Description -->
-        <div v-if="step === 2" class="space-y-4">
-          <!-- Parsed QRIS info -->
-          <div v-if="parsedQris">
-            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">QRIS Info</p>
-            <div
-              class="p-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl"
-            >
-              <!-- Primary 4 fields -->
-              <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
-                <div>
-                  <span class="text-gray-400 dark:text-gray-500">Merchant</span>
-                  <p
-                    class="text-gray-700 dark:text-gray-300 font-medium truncate"
-                    :title="parsedQris.merchantName"
-                  >
-                    {{ parsedQris.merchantName || '—' }}
-                  </p>
-                </div>
-                <div>
-                  <span class="text-gray-400 dark:text-gray-500">Kota / City</span>
-                  <p
-                    class="text-gray-700 dark:text-gray-300 font-medium truncate"
-                    :title="parsedQris.city"
-                  >
-                    {{ parsedQris.city || '—' }}
-                  </p>
-                </div>
-                <div>
-                  <span class="text-gray-400 dark:text-gray-500">Bank</span>
-                  <p
-                    class="text-gray-700 dark:text-gray-300 font-medium truncate"
-                    :title="parsedQris.bank"
-                  >
-                    {{ parsedQris.bank || '—' }}
-                  </p>
-                </div>
-                <div>
-                  <span class="text-gray-400 dark:text-gray-500">MCC</span>
-                  <p class="text-gray-700 dark:text-gray-300 font-medium truncate">
-                    {{
-                      parsedQris.mcc
-                        ? `${parsedQris.mcc}${parsedQris.mccLabel ? ` · ${parsedQris.mccLabel}` : ''}`
-                        : '—'
-                    }}
-                  </p>
-                </div>
-              </div>
-
-              <!-- Collapsible extra fields -->
-              <div
-                v-if="
-                  parsedQris.merchantId ||
-                  parsedQris.type ||
-                  parsedQris.postalCode ||
-                  parsedQris.amount
-                "
-                class="text-xs mt-2"
+    <!-- Step 2: Name + Description -->
+    <div v-if="step === 2" class="space-y-4">
+      <!-- Parsed QRIS info -->
+      <div v-if="parsedQris">
+        <p class="text-xs font-medium text-(--text-secondary) mb-1.5">QRIS Info</p>
+        <div class="p-3 bg-(--surface-sunken) border border-(--border-default) rounded-xl">
+          <!-- Primary 4 fields -->
+          <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+            <div>
+              <span class="text-(--text-tertiary)">Merchant</span>
+              <p
+                class="text-(--text-secondary) font-medium truncate"
+                :title="parsedQris.merchantName"
               >
-                <button
-                  class="flex items-center gap-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                  @click="showMoreQris = !showMoreQris"
-                >
-                  <Icon
-                    :name="
-                      showMoreQris ? 'material-symbols:expand-less' : 'material-symbols:expand-more'
-                    "
-                    class="w-3.5 h-3.5"
-                  />
-                  {{ showMoreQris ? 'Sembunyikan' : 'Lihat detail lain' }}
-                </button>
-                <div v-if="showMoreQris" class="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-2">
-                  <div v-if="parsedQris.merchantId" class="col-span-2">
-                    <span class="text-gray-400 dark:text-gray-500">Merchant ID</span>
-                    <p
-                      class="text-gray-700 dark:text-gray-300 font-mono truncate"
-                      :title="parsedQris.merchantId"
-                    >
-                      {{ parsedQris.merchantId }}
-                    </p>
-                  </div>
-                  <div v-if="parsedQris.type">
-                    <span class="text-gray-400 dark:text-gray-500">Tipe QRIS</span>
-                    <p class="text-gray-700 dark:text-gray-300 font-medium">
-                      {{ parsedQris.type === 'static' ? 'Statis' : 'Dinamis' }}
-                    </p>
-                  </div>
-                  <div v-if="parsedQris.postalCode">
-                    <span class="text-gray-400 dark:text-gray-500">Kode Pos</span>
-                    <p class="text-gray-700 dark:text-gray-300 font-medium">
-                      {{ parsedQris.postalCode }}
-                    </p>
-                  </div>
-                  <div v-if="parsedQris.amount" class="col-span-2">
-                    <span class="text-gray-400 dark:text-gray-500">Nominal</span>
-                    <p class="text-gray-700 dark:text-gray-300 font-medium">
-                      Rp {{ Number(parsedQris.amount).toLocaleString('id-ID') }}
-                    </p>
-                  </div>
-                </div>
-              </div>
+                {{ parsedQris.merchantName || '—' }}
+              </p>
+            </div>
+            <div>
+              <span class="text-(--text-tertiary)">Kota / City</span>
+              <p class="text-(--text-secondary) font-medium truncate" :title="parsedQris.city">
+                {{ parsedQris.city || '—' }}
+              </p>
+            </div>
+            <div>
+              <span class="text-(--text-tertiary)">Bank</span>
+              <p class="text-(--text-secondary) font-medium truncate" :title="parsedQris.bank">
+                {{ parsedQris.bank || '—' }}
+              </p>
+            </div>
+            <div>
+              <span class="text-(--text-tertiary)">MCC</span>
+              <p class="text-(--text-secondary) font-medium truncate">
+                {{
+                  parsedQris.mcc
+                    ? `${parsedQris.mcc}${parsedQris.mccLabel ? ` · ${parsedQris.mccLabel}` : ''}`
+                    : '—'
+                }}
+              </p>
             </div>
           </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >Name <span class="text-red-500">*</span></label
+          <!-- Collapsible extra fields -->
+          <div
+            v-if="
+              parsedQris.merchantId || parsedQris.type || parsedQris.postalCode || parsedQris.amount
+            "
+            class="text-xs mt-2"
+          >
+            <button
+              class="flex items-center gap-1 text-(--text-tertiary) hover:text-(--text-primary) transition-colors"
+              @click="showMoreQris = !showMoreQris"
             >
-            <input
-              v-model="form.name"
-              type="text"
-              maxlength="100"
-              placeholder="e.g. Masjid Al Mabrur"
-              class="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >Description</label
-            >
-            <textarea
-              v-model="form.description"
-              rows="3"
-              maxlength="500"
-              placeholder="Optional description..."
-              class="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+              <Icon
+                :name="
+                  showMoreQris ? 'material-symbols:expand-less' : 'material-symbols:expand-more'
+                "
+                class="w-3.5 h-3.5"
+              />
+              {{ showMoreQris ? 'Sembunyikan' : 'Lihat detail lain' }}
+            </button>
+            <div v-if="showMoreQris" class="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-2">
+              <div v-if="parsedQris.merchantId" class="col-span-2">
+                <span class="text-(--text-tertiary)">Merchant ID</span>
+                <p
+                  class="text-(--text-secondary) font-mono truncate"
+                  :title="parsedQris.merchantId"
+                >
+                  {{ parsedQris.merchantId }}
+                </p>
+              </div>
+              <div v-if="parsedQris.type">
+                <span class="text-(--text-tertiary)">Tipe QRIS</span>
+                <p class="text-(--text-secondary) font-medium">
+                  {{ parsedQris.type === 'static' ? 'Statis' : 'Dinamis' }}
+                </p>
+              </div>
+              <div v-if="parsedQris.postalCode">
+                <span class="text-(--text-tertiary)">Kode Pos</span>
+                <p class="text-(--text-secondary) font-medium">{{ parsedQris.postalCode }}</p>
+              </div>
+              <div v-if="parsedQris.amount" class="col-span-2">
+                <span class="text-(--text-tertiary)">Nominal</span>
+                <p class="text-(--text-secondary) font-medium">
+                  Rp {{ Number(parsedQris.amount).toLocaleString('id-ID') }}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-
-        <!-- Step 3: Location -->
-        <ClientOnly v-if="step === 3">
-          <LocationPicker
-            v-model="form.location"
-            :initial-center="props.initialCenter"
-            :locations="locations"
-            :suppress-warning="submitting"
-          />
-          <div ref="turnstileRef" class="flex justify-center mt-3" />
-        </ClientOnly>
       </div>
 
-      <!-- Footer -->
-      <div class="flex flex-col gap-2 p-5 border-t border-gray-200 dark:border-gray-700 mt-2">
-        <p v-if="submitError" class="text-sm text-red-500 text-center">{{ submitError }}</p>
-        <div class="flex gap-2">
-          <button
-            v-if="step > 1"
-            type="button"
-            class="flex-1 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            @click="step--"
-          >
-            Back
-          </button>
-          <button
-            v-if="step < 3"
-            type="button"
-            :disabled="!canProceed"
-            :class="[
-              'flex-1 py-2.5 text-sm font-medium rounded-xl transition-colors',
-              canProceed
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed',
-            ]"
-            @click="step++"
-          >
-            Next
-          </button>
-          <button
-            v-if="step === 3"
-            type="button"
-            :disabled="!canSubmit || submitting"
-            :class="[
-              'flex-1 py-2.5 text-sm font-medium rounded-xl transition-colors',
-              canSubmit && !submitting
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed',
-            ]"
-            @click="submit"
-          >
-            {{ submitting ? 'Saving...' : 'Save' }}
-          </button>
-        </div>
-      </div>
+      <Field label="Name" required html-for="add-name">
+        <Input
+          id="add-name"
+          v-model="form.name"
+          type="text"
+          maxlength="100"
+          placeholder="e.g. Masjid Al Mabrur"
+        />
+      </Field>
+      <Field label="Description" html-for="add-desc">
+        <Textarea
+          id="add-desc"
+          v-model="form.description"
+          rows="3"
+          maxlength="500"
+          placeholder="Optional description..."
+        />
+      </Field>
     </div>
-  </div>
+
+    <!-- Step 3: Location -->
+    <ClientOnly v-if="step === 3">
+      <LocationPicker
+        v-model="form.location"
+        :initial-center="props.initialCenter"
+        :locations="locations"
+        :suppress-warning="submitting"
+      />
+      <div ref="turnstileRef" class="flex justify-center mt-3" />
+    </ClientOnly>
+
+    <p v-if="submitError" class="text-sm text-(--danger-text) text-center mt-4">
+      {{ submitError }}
+    </p>
+
+    <template #footer>
+      <Button v-if="step > 1" variant="secondary" @click="step--">Back</Button>
+      <Button v-if="step < 3" variant="primary" :disabled="!canProceed" @click="step++"
+        >Next</Button
+      >
+      <Button
+        v-if="step === 3"
+        variant="primary"
+        :disabled="!canSubmit || submitting"
+        @click="submit"
+      >
+        {{ submitting ? 'Saving...' : 'Save' }}
+      </Button>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
 import { parseQris } from '~/utils/parseQris'
+import { Dialog } from '~/components/ui/dialog'
+import { Field } from '~/components/ui/field'
+import { Input } from '~/components/ui/input'
+import { Textarea } from '~/components/ui/textarea'
+import { Button } from '~/components/ui/button'
 
 const props = defineProps<{
   initialCenter?: { lat: number; lng: number } | null

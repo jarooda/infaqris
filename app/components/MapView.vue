@@ -5,11 +5,11 @@
     <!-- Search (top-left) -->
     <div ref="searchWrapperEl" class="absolute top-4 left-4 z-1000 flex flex-col gap-1.5">
       <div
-        class="bg-white dark:bg-gray-800 shadow-md rounded-full flex items-center overflow-hidden transition-all duration-200"
+        class="bg-(--surface-overlay) shadow-md rounded-full flex items-center overflow-hidden transition-all duration-200"
         :style="searchOpen ? 'width:220px' : ''"
       >
         <button
-          class="shrink-0 p-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center justify-center"
+          class="map-ctrl-btn shrink-0 p-2 rounded-full flex items-center justify-center"
           :title="searchOpen ? 'Search' : 'Search location'"
           @click="searchOpen ? doSearch() : openSearch()"
         >
@@ -25,7 +25,7 @@
           v-model="searchQuery"
           type="text"
           placeholder="Search place..."
-          class="flex-1 min-w-0 text-sm bg-transparent text-gray-800 dark:text-gray-200 placeholder-gray-400 outline-none py-2 pr-3"
+          class="flex-1 min-w-0 text-sm bg-transparent text-(--text-primary) placeholder:text-(--text-tertiary) outline-none py-2 pr-3"
           @keydown.enter="doSearch"
           @keydown.escape="closeSearch"
         />
@@ -34,13 +34,13 @@
       <!-- Results dropdown -->
       <div
         v-if="searchResults.length"
-        class="bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden"
+        class="bg-(--surface-overlay) shadow-lg rounded-xl overflow-hidden"
         style="width: 220px"
       >
         <button
           v-for="r in searchResults"
           :key="r.place_id"
-          class="w-full text-left px-3 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border-b border-gray-100 dark:border-gray-700 last:border-0"
+          class="w-full text-left px-3 py-2 text-xs text-(--text-secondary) hover:bg-(--surface-hover) transition-colors border-b border-(--border-subtle) last:border-0"
           @click="flyToResult(r)"
         >
           <span class="line-clamp-2 leading-relaxed">{{ r.display_name }}</span>
@@ -50,7 +50,7 @@
       <!-- No results -->
       <div
         v-else-if="searchDone && !searching"
-        class="bg-white dark:bg-gray-800 shadow-md rounded-xl px-3 py-2 text-xs text-gray-500 dark:text-gray-400"
+        class="bg-(--surface-overlay) shadow-md rounded-xl px-3 py-2 text-xs text-(--text-secondary)"
         style="width: 220px"
       >
         No results found
@@ -62,7 +62,7 @@
       <!-- Back to my location -->
       <button
         v-if="initialCenter"
-        class="bg-white dark:bg-gray-800 shadow-md rounded-full flex justify-center items-center p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
+        class="map-ctrl-btn map-ctrl-btn--accent bg-(--surface-overlay) shadow-md rounded-full flex justify-center items-center p-2"
         title="Back to my location"
         @click="flyHome"
       >
@@ -70,17 +70,13 @@
       </button>
 
       <!-- Layer switcher -->
-      <div class="bg-white dark:bg-gray-800 shadow-md rounded-xl overflow-hidden flex flex-col">
+      <div class="bg-(--surface-overlay) shadow-md rounded-xl overflow-hidden flex flex-col">
         <button
           v-for="layer in MAP_STYLE_OPTIONS"
           :key="layer.key"
           :title="layer.label"
-          :class="[
-            'flex items-center justify-center p-2 transition-colors',
-            style === layer.key
-              ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-              : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700',
-          ]"
+          class="map-ctrl-btn flex items-center justify-center p-2 transition-colors"
+          :class="{ 'map-ctrl-btn--active': style === layer.key }"
           @click="changeStyle(layer.key)"
         >
           <Icon :name="layer.icon" class="w-5 h-5" />
@@ -196,7 +192,7 @@ function onDocumentClick(e: MouseEvent) {
 }
 
 // ─── Marker helpers ───────────────────────────────────────────────────────────
-function pinIcon(color = '#2563eb'): DivIcon {
+function pinIcon(color = '#157053'): DivIcon {
   const el = document.createElement('div')
   vRender(
     h('svg', { xmlns: 'http://www.w3.org/2000/svg', viewBox: '0 0 24 24', width: 32, height: 32 }, [
@@ -231,7 +227,7 @@ function setTileLayer() {
 function markerColor(loc: QrisLocation, isSelected: boolean): string {
   if (isSelected) return '#dc2626' // red — selected
   if (loc.status === '2') return '#f59e0b' // amber — pending approval
-  return '#2563eb' // blue — active
+  return '#157053' // emerald — active
 }
 
 // ─── Markers ──────────────────────────────────────────────────────────────────
@@ -312,7 +308,7 @@ watch(
   (id, prevId) => {
     if (prevId) {
       const prevLoc = props.locations.find((l) => l.id === prevId)
-      markers.get(prevId)?.setIcon(pinIcon(prevLoc ? markerColor(prevLoc, false) : '#2563eb'))
+      markers.get(prevId)?.setIcon(pinIcon(prevLoc ? markerColor(prevLoc, false) : '#157053'))
     }
     if (!id || !map) return
     markers.get(id)?.setIcon(pinIcon('#dc2626'))
@@ -342,4 +338,26 @@ defineExpose({ invalidateSize: () => map?.invalidateSize() })
 <style>
 @import 'leaflet.markercluster/dist/MarkerCluster.css';
 @import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+</style>
+
+<style scoped>
+.map-ctrl-btn {
+  color: var(--text-secondary);
+  transition: var(--transition-control);
+}
+.map-ctrl-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+.map-ctrl-btn--active {
+  background: var(--accent-subtle);
+  color: var(--text-brand);
+}
+.map-ctrl-btn--accent {
+  color: var(--accent);
+}
+.map-ctrl-btn--accent:hover {
+  background: var(--accent-subtle);
+  color: var(--accent-hover);
+}
 </style>

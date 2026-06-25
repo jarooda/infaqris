@@ -1,7 +1,8 @@
 .jl-drawer__overlay {
   position: fixed;
   inset: 0;
-  z-index: 110;
+  /* Above the Leaflet map + its controls (z-1000) and the FAB (z-1001). */
+  z-index: 2010;
   background: hsl(var(--shadow-color) / 0.45);
   backdrop-filter: blur(2px);
   display: flex;

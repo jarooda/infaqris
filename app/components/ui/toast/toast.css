@@ -1,6 +1,7 @@
 .jl-toaster {
   position: fixed;
-  z-index: 200;
+  /* Above dialogs/drawers (z-2000/2010) so toasts stay visible over modals. */
+  z-index: 2100;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
