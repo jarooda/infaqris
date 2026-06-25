@@ -95,6 +95,9 @@ import type { MapStyle } from '~/composables/useMapStyle'
 const LOCATION_ON_PATH =
   'M13.413 11.413Q14 10.825 14 10t-.587-1.412T12 8t-1.412.588T10 10t.588 1.413T12 12t1.413-.587M12 22q-4.025-3.425-6.012-6.362T4 10.2q0-3.75 2.413-5.975T12 2t5.588 2.225T20 10.2q0 2.5-1.987 5.438T12 22'
 
+const USER_LOCATION_PATH =
+  'M12 2a2 2 0 0 1 2 2a2 2 0 0 1-2 2a2 2 0 0 1-2-2a2 2 0 0 1 2-2m-1.5 5h3a2 2 0 0 1 2 2v5.5H14V22h-4v-7.5H8.5V9a2 2 0 0 1 2-2'
+
 // ─── Props / Emits ────────────────────────────────────────────────────────────
 const props = defineProps<{
   locations: QrisLocation[]
@@ -114,6 +117,7 @@ let L: typeof import('leaflet') | null = null
 let clusterGroup: MarkerClusterGroup | null = null
 let tileLayer: TileLayer | null = null
 const markers = new Map<string, Marker>()
+let userMarker: Marker | null = null
 
 // ─── Map style ────────────────────────────────────────────────────────────────
 const { style, setStyle, init: initMapStyle } = useMapStyle()
@@ -211,6 +215,35 @@ function pinIcon(color = '#157053'): DivIcon {
   })
 }
 
+function userLocationIcon(): DivIcon {
+  const el = document.createElement('div')
+  vRender(
+    h(
+      'div',
+      {
+        style:
+          'width:24px;height:24px;border-radius:50%;background:#3b82f6;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;color:#fff',
+      },
+      [
+        h(
+          'svg',
+          { xmlns: 'http://www.w3.org/2000/svg', width: 14, height: 14, viewBox: '0 0 24 24' },
+          [h('path', { fill: 'currentColor', d: USER_LOCATION_PATH })],
+        ),
+      ],
+    ),
+    el,
+  )
+  const html = el.innerHTML
+  vRender(null, el)
+  return L!.divIcon({
+    html,
+    className: '',
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+  })
+}
+
 // ─── Tile layer ───────────────────────────────────────────────────────────────
 function setTileLayer() {
   if (!L || !map) return
@@ -264,6 +297,27 @@ function syncMarkers() {
   }
 }
 
+// ─── User location marker ─────────────────────────────────────────────────────
+function syncUserMarker() {
+  if (!map || !L) return
+  if (!props.initialCenter) {
+    userMarker?.remove()
+    userMarker = null
+    return
+  }
+  if (userMarker) {
+    userMarker.setLatLng([props.initialCenter.lat, props.initialCenter.lng])
+  } else {
+    userMarker = L.marker([props.initialCenter.lat, props.initialCenter.lng], {
+      icon: userLocationIcon(),
+      zIndexOffset: -1000,
+      interactive: false,
+    })
+      .bindTooltip('Your location')
+      .addTo(map)
+  }
+}
+
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
 onMounted(async () => {
   initMapStyle()
@@ -291,6 +345,7 @@ onMounted(async () => {
   })
 
   syncMarkers()
+  syncUserMarker()
 
   document.addEventListener('click', onDocumentClick)
 })
@@ -320,6 +375,7 @@ watch(
 watch(
   () => props.initialCenter,
   (center) => {
+    syncUserMarker()
     if (center && map) map.flyTo([center.lat, center.lng], 13)
   },
 )
