@@ -159,6 +159,86 @@ export async function sendSubmissionConfirmation(
   })
 }
 
+export interface LocationApprovedPayload {
+  name: string
+  description: string
+  latitude: number
+  longitude: number
+  creator: string
+}
+
+export async function sendLocationApprovedNotification(
+  payload: LocationApprovedPayload,
+): Promise<void> {
+  const { SMTP_EMAIL } = process.env
+
+  const transporter = createTransporter()
+  if (!transporter || !payload.creator) {
+    console.warn('[mailer] SMTP not fully configured — skipping approval notification email')
+    return
+  }
+
+  const mapsUrl = `https://www.google.com/maps?q=${payload.latitude},${payload.longitude}`
+
+  await transporter.sendMail({
+    from: `"InfaQRIS Bot" <${SMTP_EMAIL}>`,
+    to: payload.creator,
+    subject: `[InfaQRIS] Submission kamu "${payload.name}" telah disetujui`,
+    html: emailLayout(`
+      <h2 style="margin:0 0 16px;color:#161b18;font-size:20px">✅ Submission disetujui</h2>
+      <p style="margin:0 0 16px;font-size:14px;color:#5a655f">
+        Submission QRIS kamu sudah disetujui dan kini tampil di peta InfaQRIS.<br>
+        <em style="color:#8a948f">Your QRIS submission has been approved and now appears on the InfaQRIS map.</em>
+      </p>
+      <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;width:100%;font-size:14px">
+        ${tableRow('Nama', `<strong>${payload.name}</strong>`, false)}
+        ${tableRow('Deskripsi', payload.description || '—', false)}
+        ${tableRow('Koordinat', `<a href="${mapsUrl}" style="color:#157053">${payload.latitude}, ${payload.longitude}</a>`, true)}
+      </table>
+      <hr style="margin:16px 0;border:none;border-top:1px solid #e6e9e6">
+      <p style="margin:0;font-size:12px;color:#aab2ad">
+        Email ini dikirim otomatis oleh InfaQRIS. / This email was sent automatically by InfaQRIS.
+      </p>
+    `),
+  })
+}
+
+export interface LocationRejectedPayload {
+  name: string
+  creator: string
+}
+
+export async function sendLocationRejectedNotification(
+  payload: LocationRejectedPayload,
+): Promise<void> {
+  const { SMTP_EMAIL } = process.env
+
+  const transporter = createTransporter()
+  if (!transporter || !payload.creator) {
+    console.warn('[mailer] SMTP not fully configured — skipping rejection notification email')
+    return
+  }
+
+  await transporter.sendMail({
+    from: `"InfaQRIS Bot" <${SMTP_EMAIL}>`,
+    to: payload.creator,
+    subject: `[InfaQRIS] Submission kamu "${payload.name}" ditolak`,
+    html: emailLayout(`
+      <h2 style="margin:0 0 16px;color:#161b18;font-size:20px">🚫 Submission ditolak</h2>
+      <p style="margin:0 0 16px;font-size:14px;color:#5a655f">
+        Submission QRIS kamu <strong style="color:#161b18">"${payload.name}"</strong> ditolak oleh admin dan
+        tidak akan tampil di peta InfaQRIS.<br>
+        <em style="color:#8a948f">Your QRIS submission "${payload.name}" was rejected by an admin
+        and won't appear on the InfaQRIS map.</em>
+      </p>
+      <hr style="margin:16px 0;border:none;border-top:1px solid #e6e9e6">
+      <p style="margin:0;font-size:12px;color:#aab2ad">
+        Email ini dikirim otomatis oleh InfaQRIS. / This email was sent automatically by InfaQRIS.
+      </p>
+    `),
+  })
+}
+
 export interface LocationUpdatedPayload {
   name: string
   description: string
