@@ -126,7 +126,7 @@
           v-model="form.name"
           type="text"
           maxlength="100"
-          placeholder="e.g. Masjid Al Mabrur"
+          disabled
         />
       </Field>
       <Field label="Description" html-for="add-desc">

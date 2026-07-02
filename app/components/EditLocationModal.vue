@@ -2,7 +2,7 @@
   <Dialog :open="true" title="Edit QRIS" @close="$emit('close')">
     <div class="space-y-4 pb-2">
       <Field label="Name" required html-for="edit-name">
-        <Input id="edit-name" v-model="form.name" type="text" maxlength="100" />
+        <Input id="edit-name" v-model="form.name" type="text" maxlength="100" disabled />
       </Field>
 
       <Field label="Description" html-for="edit-desc">
