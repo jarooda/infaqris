@@ -30,13 +30,48 @@
         <em class="text-(--text-tertiary)"> / Pending admin approval.</em>
       </Alert>
 
-      <!-- QR Code (hidden for pending entries) -->
-      <div
-        v-if="!isPending"
-        class="flex flex-col items-center py-4 bg-(--surface-sunken) rounded-xl"
-      >
+      <!-- QR Code (hidden for pending entries, and gated behind a trust prompt on MCC mismatch) -->
+      <div v-if="showQr" class="flex flex-col items-center py-4 bg-(--surface-sunken) rounded-xl">
         <canvas ref="qrCanvas" class="rounded-lg" />
       </div>
+      <!-- MCC mismatch: warn, then gate the QR behind a trust prompt -->
+      <template v-else-if="!isPending && hasMccMismatch">
+        <Alert tone="warning">
+          <template #icon><Icon name="material-symbols:warning-outline" /></template>
+          <strong>Perhatian:</strong> QRIS ini terdaftar sebagai
+          <strong>{{ qrisInfo?.mccLabel || 'kategori non-keagamaan' }}</strong
+          >, bukan sebagai masjid atau organisasi keagamaan.
+          <em class="block mt-0.5 text-(--text-tertiary)">
+            This QRIS is registered under
+            <strong>{{ qrisInfo?.mccLabel || 'a non-religious category' }}</strong
+            >, not as a mosque or religious organization.
+          </em>
+          <NuxtLink
+            to="/faq#mcc"
+            class="inline-flex items-center gap-0.5 mt-1 text-(--accent) hover:underline"
+          >
+            <Icon name="material-symbols:info-outline" class="w-3 h-3" />
+            Apa itu MCC?
+          </NuxtLink>
+        </Alert>
+        <div
+          class="flex flex-col items-center gap-3 py-6 px-4 bg-(--surface-sunken) rounded-xl text-center"
+        >
+          <Icon
+            name="material-symbols:visibility-off-outline"
+            class="text-2xl text-(--text-tertiary)"
+          />
+          <p class="text-xs text-(--text-secondary)">
+            Kode QR disembunyikan. Tampilkan hanya jika Anda memercayai tujuan donasi ini.
+            <em class="block mt-0.5 text-(--text-tertiary)">
+              QR code hidden. Reveal it only if you trust this donation recipient.
+            </em>
+          </p>
+          <Button variant="secondary" size="sm" @click="qrRevealed = true">
+            Tetap tampilkan QR / <em>Show QR anyway</em>
+          </Button>
+        </div>
+      </template>
 
       <!-- QRIS Info (always shown when qris data is present) -->
       <div class="space-y-2">
@@ -75,28 +110,6 @@
               </p>
             </div>
           </div>
-
-          <!-- MCC mismatch warning -->
-          <Alert v-if="qrisInfo.mcc && !['8661', '8398'].includes(qrisInfo.mcc)" tone="warning">
-            <template #icon><Icon name="material-symbols:warning-outline" /></template>
-            QRIS ini terdaftar sebagai
-            <strong>{{ qrisInfo.mccLabel || 'kategori non-keagamaan' }}</strong
-            >, bukan sebagai masjid atau organisasi keagamaan. Pastikan tujuan donasi sesuai sebelum
-            membayar.
-            <em class="block mt-0.5 text-(--text-tertiary)">
-              This QRIS is registered under
-              <strong>{{ qrisInfo.mccLabel || 'a non-religious category' }}</strong
-              >, not as a mosque or religious organization. Verify the donation recipient before
-              paying.
-            </em>
-            <NuxtLink
-              to="/faq#mcc"
-              class="inline-flex items-center gap-0.5 mt-1 text-(--accent) hover:underline"
-            >
-              <Icon name="material-symbols:info-outline" class="w-3 h-3" />
-              Apa itu MCC?
-            </NuxtLink>
-          </Alert>
 
           <!-- Collapsible extra fields -->
           <div
@@ -253,13 +266,22 @@ const isPending = computed(() => props.location.status === '2')
 const qrisInfo = computed(() => parseQris(props.location.qris))
 const canConfirmDelete = computed(() => deleteConfirmText.value === 'DELETE QRIS')
 
+// MCC mismatch: registered under a non-religious category. When this warning shows,
+// the QR is hidden behind a trust prompt so the user must consciously choose to reveal it.
+const hasMccMismatch = computed(
+  () => !!qrisInfo.value?.mcc && !['8661', '8398'].includes(qrisInfo.value.mcc),
+)
+const qrRevealed = ref(false)
+const showQr = computed(() => !isPending.value && (!hasMccMismatch.value || qrRevealed.value))
+
 function cancelDelete() {
   confirmingDelete.value = false
   deleteConfirmText.value = ''
   deleteError.value = ''
 }
 
-onMounted(async () => {
+async function renderQr() {
+  await nextTick()
   if (qrCanvas.value && props.location.qris) {
     await QRCode.toCanvas(qrCanvas.value, props.location.qris, {
       width: 240,
@@ -267,7 +289,16 @@ onMounted(async () => {
       errorCorrectionLevel: 'M',
     })
   }
-})
+}
+
+// Draw the QR whenever it becomes visible — on initial open (no mismatch) or when revealed.
+watch(
+  showQr,
+  (visible) => {
+    if (visible) renderQr()
+  },
+  { immediate: true },
+)
 
 function formatDate(iso: string): string {
   return new Intl.DateTimeFormat('id-ID', {
