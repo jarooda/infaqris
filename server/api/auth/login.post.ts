@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
 
   const cookieOpts = {
     sameSite: 'lax' as const,
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: 60 * 60 * 24 * 30,
     secure: process.env.NODE_ENV === 'production',
     path: '/',
   }

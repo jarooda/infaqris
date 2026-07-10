@@ -23,8 +23,15 @@ async function loadFromCache() {
 }
 
 async function fetchFromServer() {
+  const { isAdmin } = useAuth()
   try {
-    const fresh = await $fetch<QrisLocation[]>('/api/locations')
+    // Admins additionally see other users' pending submissions (status 2) on the map;
+    // the public endpoint only returns active (status 1) locations.
+    const fresh = isAdmin.value
+      ? (await $fetch<QrisLocation[]>('/api/admin/locations')).filter(
+          (l) => l.status === '1' || l.status === '2',
+        )
+      : await $fetch<QrisLocation[]>('/api/locations')
     await dbPutAllLocations(fresh)
     // Merge: keep local pending/deleted entries, replace everything else
     const pendingIds = new Set(
@@ -47,6 +54,13 @@ async function initLocations() {
   await loadFromCache()
   await fetchFromServer()
   pending.value = false
+
+  // Auth resolves after the initial fetch; once we know the user is an admin,
+  // refetch so their view includes other users' pending submissions.
+  const { isAdmin } = useAuth()
+  watch(isAdmin, (admin) => {
+    if (admin) fetchFromServer()
+  })
 }
 
 export const useLocations = () => {

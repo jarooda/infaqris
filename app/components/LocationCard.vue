@@ -31,11 +31,15 @@
           pending
         </Badge>
       </div>
-      <p v-if="location.description" class="text-sm text-(--text-secondary) mt-0.5 line-clamp-2">
-        {{ location.description }}
+      <p
+        v-if="location.description"
+        class="text-sm italic text-(--text-secondary) mt-0.5 line-clamp-2"
+      >
+        &ldquo;{{ location.description }}&rdquo;
       </p>
       <p class="text-xs text-(--text-tertiary) mt-1">
-        {{ location.latitude.toFixed(5) }}, {{ location.longitude.toFixed(5) }}
+        <span v-if="city">{{ city }}</span>
+        <span v-else>{{ location.latitude.toFixed(5) }}, {{ location.longitude.toFixed(5) }}</span>
         <span v-if="distanceLabel"> · {{ distanceLabel }}</span>
       </p>
     </div>
@@ -46,6 +50,7 @@
 import type { LocalLocation } from '~/utils/db'
 import { Card } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
+import { parseQris } from '~/utils/parseQris'
 
 const props = defineProps<{
   location: LocalLocation
@@ -54,6 +59,8 @@ const props = defineProps<{
 }>()
 
 defineEmits<{ click: [] }>()
+
+const city = computed(() => parseQris(props.location.qris)?.city || null)
 
 const distanceLabel = computed(() => {
   if (!props.userCenter) return null

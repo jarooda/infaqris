@@ -117,12 +117,12 @@
         </h2>
         <p>
           Data disimpan selama platform ini aktif beroperasi, atau hingga Anda meminta penghapusan.
-          Cookie sesi berakhir dalam 7 hari atau saat Anda logout.
+          Cookie sesi berakhir dalam 30 hari atau saat Anda logout.
         </p>
         <p class="text-(--text-tertiary)">
           <em>
             Data is retained for as long as this platform is active, or until you request deletion.
-            Session cookies expire after 7 days or when you log out.
+            Session cookies expire after 30 days or when you log out.
           </em>
         </p>
       </section>
