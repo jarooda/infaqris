@@ -14,6 +14,8 @@ async function syncQueue() {
   if (syncing.value) return
   syncing.value = true
 
+  const { getToken } = useTurnstile()
+
   try {
     const ops = await dbGetPendingOps()
     pendingCount.value = ops.length
@@ -21,9 +23,12 @@ async function syncQueue() {
     for (const op of ops) {
       try {
         if (op.type === 'create' && op.payload && op.tempId) {
+          // Mint a fresh token first — never send a token-less write, or the
+          // server rejects it (400) and we'd dequeue and lose the change.
+          const turnstileToken = await getToken()
           const result = await $fetch<QrisLocation>('/api/locations', {
             method: 'POST',
-            body: op.payload,
+            body: turnstileToken ? { ...op.payload, turnstileToken } : op.payload,
           })
           // Replace temp entry with real server entry
           await dbDeleteLocation(op.tempId)
@@ -40,9 +45,10 @@ async function syncQueue() {
             // The create for this entry hasn't synced yet — skip, will be handled with create
             continue
           }
+          const turnstileToken = await getToken()
           const result = await $fetch<QrisLocation>(`/api/locations/${op.targetId}`, {
             method: 'PUT',
-            body: op.payload,
+            body: turnstileToken ? { ...op.payload, turnstileToken } : op.payload,
           })
           const updated: LocalLocation = { ...(result as LocalLocation), _pending: false }
           await dbPutLocation(updated)

@@ -119,7 +119,11 @@ export const useLocations = () => {
     return optimistic
   }
 
-  async function updateLocation(id: string, data: LocationInput): Promise<LocalLocation> {
+  async function updateLocation(
+    id: string,
+    data: LocationInput,
+    turnstileToken?: string,
+  ): Promise<LocalLocation> {
     const { isOnline } = useNetworkStatus()
 
     // Apply optimistically
@@ -144,7 +148,7 @@ export const useLocations = () => {
       try {
         const result = await $fetch<QrisLocation>(`/api/locations/${id}`, {
           method: 'PUT',
-          body: data,
+          body: turnstileToken ? { ...data, turnstileToken } : data,
         })
         const updated = { ...(result as LocalLocation), _pending: false }
         await dbPutLocation(updated)

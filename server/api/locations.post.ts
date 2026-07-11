@@ -1,33 +1,15 @@
 import { addLocation } from '../utils/sheets'
 import { requireAuth } from '../utils/auth'
 import { isAdminEmail } from '../utils/admin'
+import { requireTurnstile } from '../utils/turnstile'
 import { sendPendingNotification, sendSubmissionConfirmation } from '../utils/mailer'
-
-async function verifyTurnstile(token: string): Promise<boolean> {
-  const secret = process.env.TURNSTILE_SECRET_KEY
-  if (!secret) return true // not configured — dev or opt-out
-  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ secret, response: token }),
-  })
-  const data = (await res.json()) as { success: boolean }
-  return data.success
-}
 
 export default defineEventHandler(async (event) => {
   const email = requireAuth(event)
   const body = await readBody(event)
 
-  // Verify Turnstile when token is present; sync replays won't have one — auth is the gate.
-  if (body?.turnstileToken) {
-    const valid = await verifyTurnstile(body.turnstileToken)
-    if (!valid)
-      throw createError({
-        statusCode: 400,
-        message: 'Human verification failed. Please try again.',
-      })
-  }
+  // Mandatory human verification — a session cookie alone can't write.
+  await requireTurnstile(body?.turnstileToken)
 
   if (!body?.name?.trim()) throw createError({ statusCode: 400, message: 'Name is required' })
   if (body.name.trim().length > 100)
