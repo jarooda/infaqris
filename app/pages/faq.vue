@@ -21,31 +21,23 @@
 
     <!-- Accordion -->
     <div class="max-w-2xl mx-auto px-4 py-8 space-y-2">
-      <Card v-for="item in faqs" :id="item.id" :key="item.id" class="scroll-mt-16">
-        <button
-          class="w-full flex items-center justify-between px-4 py-3 text-left gap-3 cursor-pointer"
-          @click="toggle(item.id)"
-        >
+      <Collapsible
+        v-for="item in faqs"
+        :id="item.id"
+        :key="item.id"
+        variant="bordered"
+        class="scroll-mt-16"
+        :open="activeId === item.id"
+        @update:open="toggle(item.id)"
+      >
+        <template #trigger>
           <span class="text-sm font-semibold text-(--text-primary)" v-html="item.question" />
-          <Icon
-            name="material-symbols:expand-more"
-            class="w-5 h-5 text-(--text-tertiary) shrink-0 transition-transform duration-250"
-            :class="{ 'rotate-180': activeId === item.id }"
-          />
-        </button>
-        <Transition
-          @enter="onEnter"
-          @after-enter="onAfterEnter"
-          @leave="onLeave"
-          @after-leave="onAfterLeave"
-        >
-          <div
-            v-if="activeId === item.id"
-            class="faq-answer px-4 pb-4 pt-3 border-t border-(--border-subtle) text-sm text-(--text-secondary) leading-relaxed"
-            v-html="item.answer"
-          />
-        </Transition>
-      </Card>
+        </template>
+        <div
+          class="faq-answer text-sm text-(--text-secondary) leading-relaxed"
+          v-html="item.answer"
+        />
+      </Collapsible>
     </div>
 
     <!-- Footer -->
@@ -72,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { Card } from '~/components/ui/card'
+import { Collapsible } from '~/components/ui/collapsible'
 
 const { init: initTheme } = useTheme()
 const route = useRoute()
@@ -195,36 +187,6 @@ const faqs: FaqItem[] = [
   },
 ]
 
-function onEnter(el: Element) {
-  const e = el as HTMLElement
-  e.style.height = '0'
-  e.style.overflow = 'hidden'
-  requestAnimationFrame(() => {
-    e.style.height = e.scrollHeight + 'px'
-  })
-}
-
-function onAfterEnter(el: Element) {
-  const e = el as HTMLElement
-  e.style.height = 'auto'
-  e.style.overflow = ''
-}
-
-function onLeave(el: Element) {
-  const e = el as HTMLElement
-  e.style.height = e.scrollHeight + 'px'
-  e.style.overflow = 'hidden'
-  requestAnimationFrame(() => {
-    e.style.height = '0'
-  })
-}
-
-function onAfterLeave(el: Element) {
-  const e = el as HTMLElement
-  e.style.height = ''
-  e.style.overflow = ''
-}
-
 function toggle(id: string) {
   if (activeId.value === id) {
     activeId.value = null
@@ -254,9 +216,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.faq-answer {
-  transition: height 0.25s ease;
-}
 .faq-answer :deep(a) {
   color: var(--accent);
   text-decoration: none;

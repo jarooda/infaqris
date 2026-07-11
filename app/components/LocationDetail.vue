@@ -75,87 +75,7 @@
 
       <!-- QRIS Info (always shown when qris data is present) -->
       <div class="space-y-2">
-        <template v-if="qrisInfo">
-          <!-- Primary 4 fields -->
-          <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
-            <div>
-              <span class="text-(--text-tertiary)">Merchant</span>
-              <p
-                class="text-(--text-secondary) font-medium truncate"
-                :title="qrisInfo.merchantName"
-              >
-                {{ qrisInfo.merchantName || '—' }}
-              </p>
-            </div>
-            <div>
-              <span class="text-(--text-tertiary)">Kota / City</span>
-              <p class="text-(--text-secondary) font-medium truncate" :title="qrisInfo.city">
-                {{ qrisInfo.city || '—' }}
-              </p>
-            </div>
-            <div>
-              <span class="text-(--text-tertiary)">Bank</span>
-              <p class="text-(--text-secondary) font-medium truncate" :title="qrisInfo.bank">
-                {{ qrisInfo.bank || '—' }}
-              </p>
-            </div>
-            <div>
-              <span class="text-(--text-tertiary)">MCC</span>
-              <p class="text-(--text-secondary) font-medium truncate">
-                {{
-                  qrisInfo.mcc
-                    ? `${qrisInfo.mcc}${qrisInfo.mccLabel ? ` · ${qrisInfo.mccLabel}` : ''}`
-                    : '—'
-                }}
-              </p>
-            </div>
-          </div>
-
-          <!-- Collapsible extra fields -->
-          <div
-            v-if="qrisInfo.merchantId || qrisInfo.type || qrisInfo.postalCode || qrisInfo.amount"
-            class="text-xs"
-          >
-            <button
-              class="flex items-center gap-1 text-(--text-tertiary) hover:text-(--text-primary) transition-colors mt-1"
-              @click="showMoreQris = !showMoreQris"
-            >
-              <Icon
-                :name="
-                  showMoreQris ? 'material-symbols:expand-less' : 'material-symbols:expand-more'
-                "
-                class="w-3.5 h-3.5"
-              />
-              {{ showMoreQris ? 'Sembunyikan' : 'Lihat detail lain' }}
-            </button>
-            <div v-if="showMoreQris" class="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-2">
-              <div v-if="qrisInfo.merchantId" class="col-span-2">
-                <span class="text-(--text-tertiary)">Merchant ID</span>
-                <p class="text-(--text-secondary) font-mono truncate" :title="qrisInfo.merchantId">
-                  {{ qrisInfo.merchantId }}
-                </p>
-              </div>
-              <div v-if="qrisInfo.type">
-                <span class="text-(--text-tertiary)">Tipe QRIS</span>
-                <p class="text-(--text-secondary) font-medium">
-                  {{ qrisInfo.type === 'static' ? 'Statis' : 'Dinamis' }}
-                </p>
-              </div>
-              <div v-if="qrisInfo.postalCode">
-                <span class="text-(--text-tertiary)">Kode Pos</span>
-                <p class="text-(--text-secondary) font-medium">
-                  {{ qrisInfo.postalCode }}
-                </p>
-              </div>
-              <div v-if="qrisInfo.amount" class="col-span-2">
-                <span class="text-(--text-tertiary)">Nominal</span>
-                <p class="text-(--text-secondary) font-medium">
-                  Rp {{ Number(qrisInfo.amount).toLocaleString('id-ID') }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </template>
+        <QrisInfo v-if="qrisInfo" :info="qrisInfo" />
         <Alert v-else tone="warning">
           <template #icon><Icon name="material-symbols:warning-outline" /></template>
           QRIS tidak valid — silakan edit atau laporkan. /
@@ -239,6 +159,7 @@
 import QRCode from 'qrcode'
 import type { QrisLocation } from '~/types'
 import { parseQris } from '~/utils/parseQris'
+import QrisInfo from '~/components/QrisInfo.vue'
 import { Dialog } from '~/components/ui/dialog'
 import { Alert } from '~/components/ui/alert'
 import { Button } from '~/components/ui/button'
@@ -260,7 +181,6 @@ const confirmingDelete = ref(false)
 const deleteConfirmText = ref('')
 const deleting = ref(false)
 const deleteError = ref('')
-const showMoreQris = ref(false)
 
 const isPending = computed(() => props.location.status === '2')
 const qrisInfo = computed(() => parseQris(props.location.qris))

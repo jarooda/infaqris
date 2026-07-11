@@ -6,7 +6,7 @@
       </Field>
 
       <Field label="Description" html-for="edit-desc">
-        <Textarea id="edit-desc" v-model="form.description" rows="3" maxlength="500" />
+        <Textarea id="edit-desc" v-model="form.description" rows="3" maxlength="100" />
       </Field>
 
       <Field label="QRIS" required>
@@ -22,117 +22,7 @@
             <p v-if="qrisReplaced" class="text-xs font-medium text-(--success-text) mb-2">
               New QRIS captured
             </p>
-            <template v-if="parsedQris">
-              <!-- Primary 4 fields -->
-              <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                <div>
-                  <span class="text-(--text-tertiary)">Merchant</span>
-                  <p
-                    class="font-medium truncate"
-                    :class="qrisReplaced ? 'text-(--success-text)' : 'text-(--text-secondary)'"
-                    :title="parsedQris.merchantName"
-                  >
-                    {{ parsedQris.merchantName || '—' }}
-                  </p>
-                </div>
-                <div>
-                  <span class="text-(--text-tertiary)">Kota / City</span>
-                  <p
-                    class="font-medium truncate"
-                    :class="qrisReplaced ? 'text-(--success-text)' : 'text-(--text-secondary)'"
-                    :title="parsedQris.city"
-                  >
-                    {{ parsedQris.city || '—' }}
-                  </p>
-                </div>
-                <div>
-                  <span class="text-(--text-tertiary)">Bank</span>
-                  <p
-                    class="font-medium truncate"
-                    :class="qrisReplaced ? 'text-(--success-text)' : 'text-(--text-secondary)'"
-                    :title="parsedQris.bank"
-                  >
-                    {{ parsedQris.bank || '—' }}
-                  </p>
-                </div>
-                <div>
-                  <span class="text-(--text-tertiary)">MCC</span>
-                  <p
-                    class="font-medium truncate"
-                    :class="qrisReplaced ? 'text-(--success-text)' : 'text-(--text-secondary)'"
-                  >
-                    {{
-                      parsedQris.mcc
-                        ? `${parsedQris.mcc}${parsedQris.mccLabel ? ` · ${parsedQris.mccLabel}` : ''}`
-                        : '—'
-                    }}
-                  </p>
-                </div>
-              </div>
-
-              <!-- Collapsible extra fields -->
-              <div
-                v-if="
-                  parsedQris.merchantId ||
-                  parsedQris.type ||
-                  parsedQris.postalCode ||
-                  parsedQris.amount
-                "
-                class="text-xs mt-2"
-              >
-                <button
-                  class="flex items-center gap-1 text-(--text-tertiary) hover:text-(--text-primary) transition-colors"
-                  @click="showMoreQris = !showMoreQris"
-                >
-                  <Icon
-                    :name="
-                      showMoreQris ? 'material-symbols:expand-less' : 'material-symbols:expand-more'
-                    "
-                    class="w-3.5 h-3.5"
-                  />
-                  {{ showMoreQris ? 'Sembunyikan' : 'Lihat detail lain' }}
-                </button>
-                <div v-if="showMoreQris" class="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-2">
-                  <div v-if="parsedQris.merchantId" class="col-span-2">
-                    <span class="text-(--text-tertiary)">Merchant ID</span>
-                    <p
-                      class="font-mono truncate"
-                      :class="qrisReplaced ? 'text-(--success-text)' : 'text-(--text-secondary)'"
-                      :title="parsedQris.merchantId"
-                    >
-                      {{ parsedQris.merchantId }}
-                    </p>
-                  </div>
-                  <div v-if="parsedQris.type">
-                    <span class="text-(--text-tertiary)">Tipe QRIS</span>
-                    <p
-                      class="font-medium"
-                      :class="qrisReplaced ? 'text-(--success-text)' : 'text-(--text-secondary)'"
-                    >
-                      {{ parsedQris.type === 'static' ? 'Statis' : 'Dinamis' }}
-                    </p>
-                  </div>
-                  <div v-if="parsedQris.postalCode">
-                    <span class="text-(--text-tertiary)">Kode Pos</span>
-                    <p
-                      class="font-medium"
-                      :class="qrisReplaced ? 'text-(--success-text)' : 'text-(--text-secondary)'"
-                    >
-                      {{ parsedQris.postalCode }}
-                    </p>
-                  </div>
-                  <div v-if="parsedQris.amount" class="col-span-2">
-                    <span class="text-(--text-tertiary)">Nominal</span>
-                    <p
-                      class="font-medium"
-                      :class="qrisReplaced ? 'text-(--success-text)' : 'text-(--text-secondary)'"
-                    >
-                      Rp {{ Number(parsedQris.amount).toLocaleString('id-ID') }}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </template>
+            <QrisInfo v-if="parsedQris" :info="parsedQris" :highlight="qrisReplaced" />
             <div v-else class="flex items-center gap-2 text-xs text-(--warning-text)">
               <Icon name="material-symbols:warning-outline" class="w-4 h-4 shrink-0" />
               <span
@@ -177,6 +67,7 @@
 <script setup lang="ts">
 import type { QrisLocation } from '~/types'
 import { parseQris } from '~/utils/parseQris'
+import QrisInfo from '~/components/QrisInfo.vue'
 import { Dialog } from '~/components/ui/dialog'
 import { Field } from '~/components/ui/field'
 import { Input } from '~/components/ui/input'
@@ -194,7 +85,6 @@ const { show: showToast } = useToast()
 const saving = ref(false)
 const replacingQr = ref(false)
 const qrisReplaced = ref(false)
-const showMoreQris = ref(false)
 
 function onQrisScanned(value: string) {
   form.qris = value
