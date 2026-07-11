@@ -35,106 +35,19 @@
       <div v-if="parsedQris">
         <p class="text-xs font-medium text-(--text-secondary) mb-1.5">QRIS Info</p>
         <div class="p-3 bg-(--surface-sunken) border border-(--border-default) rounded-xl">
-          <!-- Primary 4 fields -->
-          <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
-            <div>
-              <span class="text-(--text-tertiary)">Merchant</span>
-              <p
-                class="text-(--text-secondary) font-medium truncate"
-                :title="parsedQris.merchantName"
-              >
-                {{ parsedQris.merchantName || '—' }}
-              </p>
-            </div>
-            <div>
-              <span class="text-(--text-tertiary)">Kota / City</span>
-              <p class="text-(--text-secondary) font-medium truncate" :title="parsedQris.city">
-                {{ parsedQris.city || '—' }}
-              </p>
-            </div>
-            <div>
-              <span class="text-(--text-tertiary)">Bank</span>
-              <p class="text-(--text-secondary) font-medium truncate" :title="parsedQris.bank">
-                {{ parsedQris.bank || '—' }}
-              </p>
-            </div>
-            <div>
-              <span class="text-(--text-tertiary)">MCC</span>
-              <p class="text-(--text-secondary) font-medium truncate">
-                {{
-                  parsedQris.mcc
-                    ? `${parsedQris.mcc}${parsedQris.mccLabel ? ` · ${parsedQris.mccLabel}` : ''}`
-                    : '—'
-                }}
-              </p>
-            </div>
-          </div>
-
-          <!-- Collapsible extra fields -->
-          <div
-            v-if="
-              parsedQris.merchantId || parsedQris.type || parsedQris.postalCode || parsedQris.amount
-            "
-            class="text-xs mt-2"
-          >
-            <button
-              class="flex items-center gap-1 text-(--text-tertiary) hover:text-(--text-primary) transition-colors"
-              @click="showMoreQris = !showMoreQris"
-            >
-              <Icon
-                :name="
-                  showMoreQris ? 'material-symbols:expand-less' : 'material-symbols:expand-more'
-                "
-                class="w-3.5 h-3.5"
-              />
-              {{ showMoreQris ? 'Sembunyikan' : 'Lihat detail lain' }}
-            </button>
-            <div v-if="showMoreQris" class="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-2">
-              <div v-if="parsedQris.merchantId" class="col-span-2">
-                <span class="text-(--text-tertiary)">Merchant ID</span>
-                <p
-                  class="text-(--text-secondary) font-mono truncate"
-                  :title="parsedQris.merchantId"
-                >
-                  {{ parsedQris.merchantId }}
-                </p>
-              </div>
-              <div v-if="parsedQris.type">
-                <span class="text-(--text-tertiary)">Tipe QRIS</span>
-                <p class="text-(--text-secondary) font-medium">
-                  {{ parsedQris.type === 'static' ? 'Statis' : 'Dinamis' }}
-                </p>
-              </div>
-              <div v-if="parsedQris.postalCode">
-                <span class="text-(--text-tertiary)">Kode Pos</span>
-                <p class="text-(--text-secondary) font-medium">{{ parsedQris.postalCode }}</p>
-              </div>
-              <div v-if="parsedQris.amount" class="col-span-2">
-                <span class="text-(--text-tertiary)">Nominal</span>
-                <p class="text-(--text-secondary) font-medium">
-                  Rp {{ Number(parsedQris.amount).toLocaleString('id-ID') }}
-                </p>
-              </div>
-            </div>
-          </div>
+          <QrisInfo :info="parsedQris" />
         </div>
       </div>
 
       <Field label="Name" required html-for="add-name">
-        <Input
-          id="add-name"
-          v-model="form.name"
-          type="text"
-          maxlength="100"
-          disabled
-        />
+        <Input id="add-name" v-model="form.name" type="text" maxlength="100" disabled />
       </Field>
       <Field label="Description" html-for="add-desc">
         <Textarea
           id="add-desc"
           v-model="form.description"
           rows="3"
-          maxlength="500"
+          maxlength="100"
           placeholder="Optional description..."
         />
       </Field>
@@ -174,6 +87,7 @@
 
 <script setup lang="ts">
 import { parseQris } from '~/utils/parseQris'
+import QrisInfo from '~/components/QrisInfo.vue'
 import { Dialog } from '~/components/ui/dialog'
 import { Field } from '~/components/ui/field'
 import { Input } from '~/components/ui/input'
@@ -203,7 +117,6 @@ const form = reactive({
   location: null as { lat: number; lng: number } | null,
 })
 
-const showMoreQris = ref(false)
 const qrScannerRef = ref<{ reset: () => void } | null>(null)
 const turnstileRef = ref<HTMLElement | null>(null)
 const turnstileToken = ref('')

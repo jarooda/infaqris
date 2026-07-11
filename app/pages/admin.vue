@@ -178,10 +178,11 @@
       </template>
     </div>
 
-    <!-- Status modal -->
-    <Dialog
+    <!-- Status drawer -->
+    <Drawer
       :open="!!modalLoc"
-      size="sm"
+      side="right"
+      :size="400"
       title="Ubah Status"
       :description="modalLoc?.name"
       @close="modalLoc = null"
@@ -220,7 +221,7 @@
       <template #footer>
         <Button variant="ghost" @click="modalLoc = null">Batal</Button>
       </template>
-    </Dialog>
+    </Drawer>
 
     <!-- Delete confirm modal -->
     <Dialog
@@ -253,6 +254,7 @@
 
 <script setup lang="ts">
 import { Dialog } from '~/components/ui/dialog'
+import { Drawer } from '~/components/ui/drawer'
 import { Input } from '~/components/ui/input'
 import { Tabs } from '~/components/ui/tabs'
 import { Badge } from '~/components/ui/badge'
@@ -273,6 +275,7 @@ definePageMeta({ middleware: 'admin' })
 
 const { user } = useAuth()
 const { isDark, toggle: toggleTheme, init: initTheme } = useTheme()
+const { show: showToast } = useToast()
 
 interface AdminLocation {
   id: string
@@ -331,7 +334,10 @@ const filtered = computed(() => {
         l._qris?.merchantId.toLowerCase().includes(q),
     )
   }
-  return list
+  // Newest nominations first, so the latest submissions land on page 1.
+  return [...list].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  )
 })
 
 // Pagination
@@ -394,7 +400,7 @@ async function applyStatus(status: string) {
     modalLoc.value.status = status
     modalLoc.value = null
   } catch {
-    alert('Gagal mengubah status. Coba lagi.')
+    showToast('Gagal mengubah status. Coba lagi.', 'error')
   } finally {
     modalUpdating.value = false
     modalPending.value = null
@@ -419,7 +425,7 @@ async function confirmDelete() {
     }
     deleteLoc.value = null
   } catch {
-    alert('Gagal menghapus data. Coba lagi.')
+    showToast('Gagal menghapus data. Coba lagi.', 'error')
   } finally {
     deleteDeleting.value = false
   }

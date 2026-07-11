@@ -19,4 +19,14 @@ export default withNuxt(
       'vue/multi-word-component-names': 'off',
     },
   },
+  {
+    // Vendored JLDS design-system source (added via `npx @jarooda/jlds add`).
+    // These files are maintained upstream; the unused-vars rule misfires on their
+    // type-position parameter names (e.g. Resizable's context interface).
+    files: ['app/components/ui/**'],
+    rules: {
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+    },
+  },
 )
