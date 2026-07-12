@@ -5,7 +5,7 @@ import { requireTurnstile } from '../utils/turnstile'
 import { sendPendingNotification, sendSubmissionConfirmation } from '../utils/mailer'
 
 export default defineEventHandler(async (event) => {
-  const email = requireAuth(event)
+  const email = await requireAuth(event)
   const body = await readBody(event)
 
   // Mandatory human verification — a session cookie alone can't write.

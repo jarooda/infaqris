@@ -1,5 +1,6 @@
 import { OAuth2Client } from 'google-auth-library'
 import { isAdminEmail } from '../../utils/admin'
+import { signAuthToken } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -27,8 +28,9 @@ export default defineEventHandler(async (event) => {
     path: '/',
   }
 
-  // httpOnly — server auth verification
-  setCookie(event, 'auth_email', email, { ...cookieOpts, httpOnly: true })
+  // httpOnly, signed JWT — a tampered/forged value fails verification
+  const token = await signAuthToken(email)
+  setCookie(event, 'auth_email', token, { ...cookieOpts, httpOnly: true })
   // non-httpOnly — client hint to skip the /api/auth/me call when unauthenticated
   setCookie(event, 'auth_hint', '1', { ...cookieOpts, httpOnly: false })
 
