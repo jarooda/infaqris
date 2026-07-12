@@ -1,6 +1,7 @@
 import { isNumber } from 'jalutils/type'
 import { getLocations, updateLocation } from '../../utils/sheets'
 import { requireAdmin } from '../../utils/admin'
+import { requireTurnstile } from '../../utils/turnstile'
 import { sendLocationUpdatedNotification } from '../../utils/mailer'
 
 export default defineEventHandler(async (event) => {
@@ -9,6 +10,9 @@ export default defineEventHandler(async (event) => {
   if (!id) throw createError({ statusCode: 400, message: 'ID is required' })
 
   const body = await readBody(event)
+
+  // Mandatory human verification — a session cookie alone can't write.
+  await requireTurnstile(body?.turnstileToken)
 
   if (!body?.name?.trim()) throw createError({ statusCode: 400, message: 'Name is required' })
   if (body.name.trim().length > 100)

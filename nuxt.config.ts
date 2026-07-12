@@ -11,6 +11,16 @@ export default defineNuxtConfig({
   css: ['./app/assets/css/main.css'],
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: [
+        'html5-qrcode',
+        'idb',
+        'leaflet', // CJS
+        'leaflet.markercluster', // CJS
+        'merchant-category-code', // CJS
+        'qrcode', // CJS
+      ],
+    },
   },
   runtimeConfig: {
     googleClientId: process.env.GOOGLE_CLIENT_ID ?? '',

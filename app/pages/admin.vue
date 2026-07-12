@@ -39,7 +39,9 @@
       >
         <template #icon><Icon name="material-symbols:search" /></template>
       </Input>
-      <Tabs v-model="statusFilter" :items="tabItems" variant="pill" />
+      <div class="admin-tabs-scroll w-full min-w-0 overflow-x-auto sm:w-auto">
+        <Tabs v-model="statusFilter" :items="tabItems" variant="pill" />
+      </div>
     </div>
 
     <!-- Table -->
@@ -104,7 +106,7 @@
                   </div>
                   <div class="text-xs text-(--text-tertiary) truncate mt-0.5">
                     {{ loc._qris.city
-                    }}<template v-if="loc._qris.postalCode"> {{ loc._qris.postalCode }}</template>
+                    }}<template v-if="loc._qris.postalCode"> · {{ loc._qris.postalCode }}</template>
                   </div>
                   <div class="text-xs text-(--text-tertiary) truncate">{{ loc._qris.bank }}</div>
                   <div
@@ -459,3 +461,14 @@ useSeoMeta({ title: 'Admin — InfaQRIS' })
 
 onMounted(() => initTheme())
 </script>
+
+<style scoped>
+/* Let the pill tabs scroll horizontally on narrow screens without a visible scrollbar */
+.admin-tabs-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.admin-tabs-scroll::-webkit-scrollbar {
+  display: none;
+}
+</style>

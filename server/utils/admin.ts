@@ -1,5 +1,6 @@
 import type { H3Event } from 'h3'
 import { google } from 'googleapis'
+import { getAuthEmail } from './auth'
 
 // --- Sheets helper (local to avoid circular import with sheets.ts) ---
 
@@ -83,7 +84,7 @@ export async function isAdminEmail(email: string): Promise<boolean> {
  * Throws 401 if unauthenticated, 403 if not an admin.
  */
 export async function requireAdmin(event: H3Event): Promise<string> {
-  const email = getCookie(event, 'auth_email')
+  const email = await getAuthEmail(event)
   if (!email) throw createError({ statusCode: 401, message: 'Authentication required' })
   const admin = await isAdminEmail(email)
   if (!admin) throw createError({ statusCode: 403, message: 'Admin access required' })

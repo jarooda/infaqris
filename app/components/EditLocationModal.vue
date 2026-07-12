@@ -54,6 +54,8 @@
           />
         </ClientOnly>
       </Field>
+
+      <div ref="turnstileRef" class="flex justify-center" />
     </div>
 
     <template #footer>
@@ -82,9 +84,54 @@ const emit = defineEmits<{
 
 const { updateLocation, locations } = useLocations()
 const { show: showToast } = useToast()
+const runtimeConfig = useRuntimeConfig()
 const saving = ref(false)
 const replacingQr = ref(false)
 const qrisReplaced = ref(false)
+
+const turnstileRef = ref<HTMLElement | null>(null)
+const turnstileToken = ref('')
+let turnstileWidgetId: string | null = null
+const siteKey = runtimeConfig.public.turnstileSiteKey as string
+
+async function renderTurnstile() {
+  if (!siteKey || !turnstileRef.value) return
+  // Load script if not yet present
+  if (!(window as any).turnstile) {
+    await new Promise<void>((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
+      script.onload = () => resolve()
+      script.onerror = () => reject()
+      document.head.appendChild(script)
+    })
+  }
+  if (turnstileWidgetId !== null) {
+    ;(window as any).turnstile.remove(turnstileWidgetId)
+    turnstileWidgetId = null
+    turnstileToken.value = ''
+  }
+  turnstileWidgetId = (window as any).turnstile.render(turnstileRef.value, {
+    sitekey: siteKey,
+    callback: (token: string) => {
+      turnstileToken.value = token
+    },
+    'expired-callback': () => {
+      turnstileToken.value = ''
+    },
+  })
+}
+
+onMounted(async () => {
+  await nextTick()
+  renderTurnstile()
+})
+
+onUnmounted(() => {
+  if (turnstileWidgetId !== null) {
+    ;(window as any).turnstile?.remove(turnstileWidgetId)
+  }
+})
 
 function onQrisScanned(value: string) {
   form.qris = value
@@ -103,22 +150,39 @@ const form = reactive({
 })
 
 const parsedQris = computed(() => parseQris(form.qris))
-const canSubmit = computed(() => !!form.name.trim() && !!form.qris.trim() && !!form.location)
+const canSubmit = computed(
+  () =>
+    !!form.name.trim() &&
+    !!form.qris.trim() &&
+    !!form.location &&
+    (!siteKey || !!turnstileToken.value),
+)
 
 async function submit() {
   if (!form.location) return
   saving.value = true
   try {
-    await updateLocation(props.location.id, {
-      name: form.name.trim(),
-      description: form.description.trim(),
-      qris: form.qris.trim(),
-      latitude: form.location.lat,
-      longitude: form.location.lng,
-    })
+    await updateLocation(
+      props.location.id,
+      {
+        name: form.name.trim(),
+        description: form.description.trim(),
+        qris: form.qris.trim(),
+        latitude: form.location.lat,
+        longitude: form.location.lng,
+      },
+      turnstileToken.value || undefined,
+    )
     showToast('Changes saved.', 'success')
     emit('updated')
     emit('close')
+  } catch (e: any) {
+    showToast(e?.data?.message ?? 'Failed to save. Please try again.', 'error')
+    // Reset widget so the user can retry
+    if (turnstileWidgetId !== null) {
+      ;(window as any).turnstile?.reset(turnstileWidgetId)
+      turnstileToken.value = ''
+    }
   } finally {
     saving.value = false
   }
