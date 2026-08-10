@@ -104,6 +104,7 @@ const runtimeConfig = useRuntimeConfig()
 const { locations, refresh: refreshLocations } = useLocations()
 const { user, fetchUser, login } = useAuth()
 const { init: initTheme } = useTheme()
+const { setSort, hasSaved: hasSavedSort } = useSortPreference()
 
 const selectedId = ref<string | null>(null)
 const showAdd = ref(false)
@@ -228,6 +229,8 @@ onMounted(async () => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         userCenter.value = { lat: pos.coords.latitude, lng: pos.coords.longitude }
+        // First time granting location access (no sort saved yet): default to nearest-first.
+        if (!hasSavedSort()) setSort('distance')
       },
       () => {},
     )

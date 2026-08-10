@@ -18,5 +18,10 @@ export const useSortPreference = () => {
     }
   }
 
-  return { sortBy, setSort, init }
+  /** True once the user has explicitly picked a sort (persisted to localStorage). */
+  function hasSaved(): boolean {
+    return import.meta.client && VALID.includes(localStorage.getItem(KEY) as SortBy)
+  }
+
+  return { sortBy, setSort, init, hasSaved }
 }
