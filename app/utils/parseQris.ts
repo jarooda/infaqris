@@ -1,5 +1,13 @@
 import lookupMcc from 'merchant-category-code'
 
+// Expected MCCs for mosques / prayer rooms: 8661 (Religious Organizations), 8398
+// (Charitable and Social Service Organizations). See /faq#mcc.
+export const RELIGIOUS_MCC_CODES = ['8661', '8398']
+
+export function isMccMismatch(mcc?: string): boolean {
+  return !!mcc && !RELIGIOUS_MCC_CODES.includes(mcc)
+}
+
 export interface QrisInfo {
   merchantName: string
   merchantId: string

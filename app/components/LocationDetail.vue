@@ -158,7 +158,7 @@
 <script setup lang="ts">
 import QRCode from 'qrcode'
 import type { QrisLocation } from '~/types'
-import { parseQris } from '~/utils/parseQris'
+import { parseQris, isMccMismatch } from '~/utils/parseQris'
 import QrisInfo from '~/components/QrisInfo.vue'
 import { Dialog } from '~/components/ui/dialog'
 import { Alert } from '~/components/ui/alert'
@@ -188,9 +188,7 @@ const canConfirmDelete = computed(() => deleteConfirmText.value === 'DELETE QRIS
 
 // MCC mismatch: registered under a non-religious category. When this warning shows,
 // the QR is hidden behind a trust prompt so the user must consciously choose to reveal it.
-const hasMccMismatch = computed(
-  () => !!qrisInfo.value?.mcc && !['8661', '8398'].includes(qrisInfo.value.mcc),
-)
+const hasMccMismatch = computed(() => isMccMismatch(qrisInfo.value?.mcc))
 const qrRevealed = ref(false)
 const showQr = computed(() => !isPending.value && (!hasMccMismatch.value || qrRevealed.value))
 

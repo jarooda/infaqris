@@ -2,6 +2,8 @@
 
 @import 'leaflet/dist/leaflet.css';
 @import 'tailwindcss';
+@import '../../components/ui/popover/popover.css';
+@import '../../components/ui/anchored-popup/anchored-popup.css';
 
 /* Enable .dark class-based dark mode */
 @custom-variant dark (&:where(.dark, .dark *));

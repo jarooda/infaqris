@@ -35,38 +35,39 @@
             </template>
             <span v-if="!syncing && pendingCount > 0">{{ pendingCount }}</span>
           </Badge>
-          <!-- Install PWA -->
-          <IconButton v-if="canInstall" size="sm" title="Install InfaQRIS" @click="installPwa">
-            <Icon name="material-symbols:install-mobile" />
-          </IconButton>
-          <!-- Theme toggle -->
-          <IconButton
-            size="sm"
-            :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-            @click="toggleTheme"
-          >
-            <Icon :name="isDark ? 'material-symbols:light-mode' : 'material-symbols:dark-mode'" />
-          </IconButton>
-          <!-- Signed in -->
+          <!-- Signed in: theme, install, and sign out live inside the avatar popover -->
           <template v-if="user">
-            <NuxtLink v-if="isAdmin" to="/admin" title="Buka panel admin" class="flex">
-              <Avatar :name="user.email" :size="20" class="cursor-pointer" />
-            </NuxtLink>
-            <Avatar v-else :name="user.email" :size="20" :title="user.email" />
-            <IconButton size="sm" title="Sign out" @click="handleLogout">
-              <Icon name="material-symbols:logout" />
+            <UserMenuPopover
+              :user="user"
+              :is-admin="isAdmin"
+              :is-dark="isDark"
+              :can-install="canInstall"
+              @toggle-theme="toggleTheme"
+              @install="installPwa"
+              @logout="confirmLogoutOpen = true"
+            />
+          </template>
+          <!-- Not signed in: no popover to house them, so keep them in the header -->
+          <template v-else>
+            <IconButton v-if="canInstall" size="sm" title="Install InfaQRIS" @click="installPwa">
+              <Icon name="material-symbols:install-mobile" />
+            </IconButton>
+            <IconButton
+              size="sm"
+              :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+              @click="toggleTheme"
+            >
+              <Icon :name="isDark ? 'material-symbols:light-mode' : 'material-symbols:dark-mode'" />
+            </IconButton>
+            <IconButton
+              size="sm"
+              :disabled="!isOnline"
+              :title="isOnline ? 'Sign in with Google' : 'Sign in unavailable offline'"
+              @click="isOnline && emit('login')"
+            >
+              <Icon name="material-symbols:login" />
             </IconButton>
           </template>
-          <!-- Not signed in -->
-          <IconButton
-            v-else
-            size="sm"
-            :disabled="!isOnline"
-            :title="isOnline ? 'Sign in with Google' : 'Sign in unavailable offline'"
-            @click="isOnline && emit('login')"
-          >
-            <Icon name="material-symbols:login" />
-          </IconButton>
         </div>
       </div>
 
@@ -146,13 +147,25 @@
         >
       </div>
     </div>
+
+    <Dialog
+      :open="confirmLogoutOpen"
+      title="Sign out?"
+      description="You'll need to sign in again to add or edit locations."
+      size="sm"
+      @close="confirmLogoutOpen = false"
+    >
+      <template #footer>
+        <Button variant="ghost" size="sm" @click="confirmLogoutOpen = false">Cancel</Button>
+        <Button variant="danger" size="sm" @click="handleLogout">Sign out</Button>
+      </template>
+    </Dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { QrisLocation } from '~/types'
 import type { SortBy } from '~/composables/useSortPreference'
-import { Avatar } from '~/components/ui/avatar'
 import { IconButton } from '~/components/ui/icon-button'
 import { Badge } from '~/components/ui/badge'
 import { Input } from '~/components/ui/input'
@@ -160,6 +173,8 @@ import { Banner } from '~/components/ui/banner'
 import { Skeleton } from '~/components/ui/skeleton'
 import { EmptyState } from '~/components/ui/empty-state'
 import { DropdownMenu, DropdownMenuItem } from '~/components/ui/dropdown-menu'
+import { Dialog } from '~/components/ui/dialog'
+import { Button } from '~/components/ui/button'
 
 const props = defineProps<{ userCenter: { lat: number; lng: number } | null }>()
 const selectedId = defineModel<string | null>('selectedId')
@@ -232,7 +247,10 @@ function select(loc: QrisLocation) {
   selectedId.value = loc.id
 }
 
+const confirmLogoutOpen = ref(false)
+
 async function handleLogout() {
+  confirmLogoutOpen.value = false
   await logout()
 }
 
