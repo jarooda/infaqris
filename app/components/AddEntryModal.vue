@@ -39,6 +39,26 @@
         </div>
       </div>
 
+      <!-- MCC mismatch: registered under a non-religious category -->
+      <Alert v-if="hasMccMismatch" tone="warning">
+        <template #icon><Icon name="material-symbols:warning-outline" /></template>
+        <strong>Perhatian:</strong> QRIS ini terdaftar sebagai
+        <strong>{{ parsedQris?.mccLabel || 'kategori non-keagamaan' }}</strong
+        >, bukan sebagai masjid atau organisasi keagamaan.
+        <em class="block mt-0.5 text-(--text-tertiary)">
+          This QRIS is registered under
+          <strong>{{ parsedQris?.mccLabel || 'a non-religious category' }}</strong
+          >, not as a mosque or religious organization.
+        </em>
+        <NuxtLink
+          to="/faq#mcc"
+          class="inline-flex items-center gap-0.5 mt-1 text-(--accent) hover:underline"
+        >
+          <Icon name="material-symbols:info-outline" class="w-3 h-3" />
+          Apa itu MCC?
+        </NuxtLink>
+      </Alert>
+
       <Field label="Name" required html-for="add-name">
         <Input id="add-name" v-model="form.name" type="text" maxlength="100" disabled />
       </Field>
@@ -86,13 +106,14 @@
 </template>
 
 <script setup lang="ts">
-import { parseQris } from '~/utils/parseQris'
+import { parseQris, isMccMismatch } from '~/utils/parseQris'
 import QrisInfo from '~/components/QrisInfo.vue'
 import { Dialog } from '~/components/ui/dialog'
 import { Field } from '~/components/ui/field'
 import { Input } from '~/components/ui/input'
 import { Textarea } from '~/components/ui/textarea'
 import { Button } from '~/components/ui/button'
+import { Alert } from '~/components/ui/alert'
 
 const props = defineProps<{
   initialCenter?: { lat: number; lng: number } | null
@@ -167,6 +188,7 @@ onUnmounted(() => {
 })
 
 const parsedQris = computed(() => parseQris(form.qris))
+const hasMccMismatch = computed(() => isMccMismatch(parsedQris.value?.mcc))
 
 const stepLabel = computed(() => ['Scan QR code', 'Add details', 'Pick location'][step.value - 1])
 

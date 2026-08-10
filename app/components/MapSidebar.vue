@@ -35,35 +35,39 @@
             </template>
             <span v-if="!syncing && pendingCount > 0">{{ pendingCount }}</span>
           </Badge>
-          <!-- Install PWA -->
-          <IconButton v-if="canInstall" size="sm" title="Install InfaQRIS" @click="installPwa">
-            <Icon name="material-symbols:install-mobile" />
-          </IconButton>
-          <!-- Theme toggle -->
-          <IconButton
-            size="sm"
-            :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-            @click="toggleTheme"
-          >
-            <Icon :name="isDark ? 'material-symbols:light-mode' : 'material-symbols:dark-mode'" />
-          </IconButton>
-          <!-- Signed in -->
+          <!-- Signed in: theme, install, and sign out live inside the avatar popover -->
           <template v-if="user">
-            <UserMenuPopover :user="user" :is-admin="isAdmin" />
-            <IconButton size="sm" title="Sign out" @click="confirmLogoutOpen = true">
-              <Icon name="material-symbols:logout" />
+            <UserMenuPopover
+              :user="user"
+              :is-admin="isAdmin"
+              :is-dark="isDark"
+              :can-install="canInstall"
+              @toggle-theme="toggleTheme"
+              @install="installPwa"
+              @logout="confirmLogoutOpen = true"
+            />
+          </template>
+          <!-- Not signed in: no popover to house them, so keep them in the header -->
+          <template v-else>
+            <IconButton v-if="canInstall" size="sm" title="Install InfaQRIS" @click="installPwa">
+              <Icon name="material-symbols:install-mobile" />
+            </IconButton>
+            <IconButton
+              size="sm"
+              :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+              @click="toggleTheme"
+            >
+              <Icon :name="isDark ? 'material-symbols:light-mode' : 'material-symbols:dark-mode'" />
+            </IconButton>
+            <IconButton
+              size="sm"
+              :disabled="!isOnline"
+              :title="isOnline ? 'Sign in with Google' : 'Sign in unavailable offline'"
+              @click="isOnline && emit('login')"
+            >
+              <Icon name="material-symbols:login" />
             </IconButton>
           </template>
-          <!-- Not signed in -->
-          <IconButton
-            v-else
-            size="sm"
-            :disabled="!isOnline"
-            :title="isOnline ? 'Sign in with Google' : 'Sign in unavailable offline'"
-            @click="isOnline && emit('login')"
-          >
-            <Icon name="material-symbols:login" />
-          </IconButton>
         </div>
       </div>
 

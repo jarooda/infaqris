@@ -112,7 +112,7 @@
                   <div
                     class="text-xs truncate mt-0.5"
                     :class="
-                      loc._qris.mcc && !['8661', '8398'].includes(loc._qris.mcc)
+                      isMccMismatch(loc._qris.mcc)
                         ? 'text-(--warning-text)'
                         : 'text-(--text-tertiary)'
                     "

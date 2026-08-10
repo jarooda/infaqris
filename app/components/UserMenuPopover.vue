@@ -1,10 +1,22 @@
 <template>
   <Popover v-model:open="open" align="end" :arrow="false">
     <template #trigger>
-      <Avatar :name="user.email" :size="20" :title="user.email" class="cursor-pointer" />
+      <span class="inline-flex items-center gap-0.5 cursor-pointer group" :title="user.email">
+        <Avatar
+          :name="user.email"
+          :size="32"
+          ring
+          class="transition-transform group-hover:scale-105"
+        />
+        <Icon
+          name="material-symbols:keyboard-arrow-down-rounded"
+          class="text-(--text-tertiary) transition-transform"
+          :class="{ 'rotate-180': open }"
+        />
+      </span>
     </template>
 
-    <div class="w-56">
+    <div class="w-full sm:w-60">
       <p class="text-sm font-medium text-(--text-primary) truncate mb-3">{{ user.email }}</p>
 
       <template v-if="pending">
@@ -29,6 +41,37 @@
           Admin panel
         </Button>
       </NuxtLink>
+
+      <div class="my-3 pt-3 border-t border-(--border-subtle) space-y-1">
+        <button
+          v-if="canInstall"
+          type="button"
+          class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm text-(--text-secondary) hover:bg-(--surface-sunken) transition-colors"
+          @click="$emit('install')"
+        >
+          <Icon name="material-symbols:install-mobile" class="text-base" />
+          Install InfaQRIS
+        </button>
+        <button
+          type="button"
+          class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm text-(--text-secondary) hover:bg-(--surface-sunken) transition-colors"
+          @click="$emit('toggle-theme')"
+        >
+          <Icon
+            :name="isDark ? 'material-symbols:light-mode' : 'material-symbols:dark-mode'"
+            class="text-base"
+          />
+          {{ isDark ? 'Light mode' : 'Dark mode' }}
+        </button>
+        <button
+          type="button"
+          class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm text-(--danger-text) hover:bg-(--danger-subtle) transition-colors"
+          @click="$emit('logout')"
+        >
+          <Icon name="material-symbols:logout" class="text-base" />
+          Sign out
+        </button>
+      </div>
     </div>
   </Popover>
 </template>
@@ -40,7 +83,13 @@ import { Avatar } from '~/components/ui/avatar'
 import { Skeleton } from '~/components/ui/skeleton'
 import { Button } from '~/components/ui/button'
 
-defineProps<{ user: { email: string; isAdmin: boolean }; isAdmin: boolean }>()
+defineProps<{
+  user: { email: string; isAdmin: boolean }
+  isAdmin: boolean
+  isDark: boolean
+  canInstall: boolean
+}>()
+defineEmits<{ 'toggle-theme': []; install: []; logout: [] }>()
 
 const open = ref(false)
 const pending = ref(false)
