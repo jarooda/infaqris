@@ -14,6 +14,15 @@ export default withNuxt(
     },
   },
   {
+    // New vendored .ts files (e.g. anchored-popup, added via `npx @jarooda/jlds add`)
+    // aren't picked up by Nuxt's generated type-aware glob until the project is built,
+    // so they fall back to the plain JS parser and fail on TS-only syntax.
+    files: ['app/components/ui/**/*.ts'],
+    languageOptions: {
+      parser: typescriptParser,
+    },
+  },
+  {
     rules: {
       'vue/html-self-closing': 'off',
       'vue/multi-word-component-names': 'off',

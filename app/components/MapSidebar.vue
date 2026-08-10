@@ -49,11 +49,8 @@
           </IconButton>
           <!-- Signed in -->
           <template v-if="user">
-            <NuxtLink v-if="isAdmin" to="/admin" title="Buka panel admin" class="flex">
-              <Avatar :name="user.email" :size="20" class="cursor-pointer" />
-            </NuxtLink>
-            <Avatar v-else :name="user.email" :size="20" :title="user.email" />
-            <IconButton size="sm" title="Sign out" @click="handleLogout">
+            <UserMenuPopover :user="user" :is-admin="isAdmin" />
+            <IconButton size="sm" title="Sign out" @click="confirmLogoutOpen = true">
               <Icon name="material-symbols:logout" />
             </IconButton>
           </template>
@@ -146,13 +143,25 @@
         >
       </div>
     </div>
+
+    <Dialog
+      :open="confirmLogoutOpen"
+      title="Sign out?"
+      description="You'll need to sign in again to add or edit locations."
+      size="sm"
+      @close="confirmLogoutOpen = false"
+    >
+      <template #footer>
+        <Button variant="ghost" size="sm" @click="confirmLogoutOpen = false">Cancel</Button>
+        <Button variant="danger" size="sm" @click="handleLogout">Sign out</Button>
+      </template>
+    </Dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { QrisLocation } from '~/types'
 import type { SortBy } from '~/composables/useSortPreference'
-import { Avatar } from '~/components/ui/avatar'
 import { IconButton } from '~/components/ui/icon-button'
 import { Badge } from '~/components/ui/badge'
 import { Input } from '~/components/ui/input'
@@ -160,6 +169,8 @@ import { Banner } from '~/components/ui/banner'
 import { Skeleton } from '~/components/ui/skeleton'
 import { EmptyState } from '~/components/ui/empty-state'
 import { DropdownMenu, DropdownMenuItem } from '~/components/ui/dropdown-menu'
+import { Dialog } from '~/components/ui/dialog'
+import { Button } from '~/components/ui/button'
 
 const props = defineProps<{ userCenter: { lat: number; lng: number } | null }>()
 const selectedId = defineModel<string | null>('selectedId')
@@ -232,7 +243,10 @@ function select(loc: QrisLocation) {
   selectedId.value = loc.id
 }
 
+const confirmLogoutOpen = ref(false)
+
 async function handleLogout() {
+  confirmLogoutOpen.value = false
   await logout()
 }
 
