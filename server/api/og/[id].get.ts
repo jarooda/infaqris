@@ -2,6 +2,7 @@ import type { H3Event } from 'h3'
 import QRCode from 'qrcode'
 import sharp from 'sharp'
 import { getLocations } from '../../utils/sheets'
+import { parseQris, isMccMismatch } from '../../../app/utils/parseQris'
 
 const QR_SIZE = 800
 const LOGO_RATIO = 0.22
@@ -25,7 +26,19 @@ export default defineEventHandler(async (event) => {
   const location = locations.find((l) => l.id === id)
   if (!location?.qris) throw createError({ statusCode: 404, message: 'Location not found' })
 
-  const qrBuffer = await QRCode.toBuffer(location.qris, {
+  // Suspicious-MCC locations hide their QR behind a trust prompt in the UI
+  // (see LocationDetail.vue) — the share preview must not leak a scannable
+  // QR either, so fall back to the plain logo instead of generating it.
+  const mcc = parseQris(location.qris)?.mcc
+  const image = isMccMismatch(mcc) ? await getLogo(event) : await qrisImage(event, location.qris)
+
+  setResponseHeader(event, 'Content-Type', 'image/png')
+  setResponseHeader(event, 'Cache-Control', 'public, max-age=31536000, immutable')
+  return image
+})
+
+async function qrisImage(event: H3Event, qris: string) {
+  const qrBuffer = await QRCode.toBuffer(qris, {
     type: 'png',
     errorCorrectionLevel: 'H',
     width: QR_SIZE,
@@ -46,12 +59,8 @@ export default defineEventHandler(async (event) => {
     .png()
     .toBuffer()
 
-  const image = await sharp(qrBuffer)
+  return sharp(qrBuffer)
     .composite([{ input: logoBuffer, gravity: 'center' }])
     .png()
     .toBuffer()
-
-  setResponseHeader(event, 'Content-Type', 'image/png')
-  setResponseHeader(event, 'Cache-Control', 'public, max-age=3600')
-  return image
-})
+}
