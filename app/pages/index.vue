@@ -123,20 +123,56 @@ const tabOptions = [
 
 const { origin } = useRequestURL()
 
+// Fetch the shared location server-side (if the URL carries ?id=) so link
+// previews (WhatsApp/Telegram/FB/X crawlers, which don't run JS) get
+// per-location meta instead of the generic site meta.
+const { data: sharedLocation } = await useAsyncData(
+  'shared-location',
+  () => {
+    const id = route.query.id as string | undefined
+    return id
+      ? $fetch<QrisLocation>(`/api/locations/${id}`).catch(() => null)
+      : Promise.resolve(null)
+  },
+  { watch: [() => route.query.id] },
+)
+
+const defaultTitle = 'InfaQRIS — Scan. Give. Berkah.'
+const defaultDescription =
+  'Peta crowdsource lokasi QRIS masjid dan mushola di Indonesia. Temukan, tambah, dan verifikasi titik QRIS terdekat.'
+
 useSeoMeta({
-  title: 'InfaQRIS — Scan. Give. Berkah.',
-  description:
-    'Peta crowdsource lokasi QRIS masjid dan mushola di Indonesia. Temukan, tambah, dan verifikasi titik QRIS terdekat.',
-  ogTitle: 'InfaQRIS — Scan. Give. Berkah.',
-  ogDescription: 'Peta crowdsource lokasi QRIS masjid dan mushola di Indonesia.',
-  ogImage: `${origin}/infaqris.png`,
+  title: () =>
+    sharedLocation.value
+      ? `${sharedLocation.value.name} — Bagikan Lokasi Zakat/Infaq | InfaQRIS`
+      : defaultTitle,
+  description: () =>
+    sharedLocation.value
+      ? `Scan QRIS di ${sharedLocation.value.name} untuk zakat & infaq. Lihat lokasi & detail QRIS-nya di InfaQRIS.`
+      : defaultDescription,
+  ogUrl: () => (sharedLocation.value ? `${origin}/?id=${sharedLocation.value.id}` : origin),
+  ogTitle: () => (sharedLocation.value ? sharedLocation.value.name : defaultTitle),
+  ogDescription: () =>
+    sharedLocation.value
+      ? `Scan QRIS di ${sharedLocation.value.name} untuk zakat & infaq.`
+      : 'Peta crowdsource lokasi QRIS masjid dan mushola di Indonesia.',
+  ogImage: () =>
+    sharedLocation.value
+      ? `${origin}/api/og/${sharedLocation.value.id}.png`
+      : `${origin}/infaqris.png`,
   ogImageWidth: 800,
   ogImageHeight: 800,
   ogType: 'website',
-  twitterCard: 'summary',
-  twitterTitle: 'InfaQRIS — Scan. Give. Berkah.',
-  twitterDescription: 'Peta crowdsource lokasi QRIS masjid dan mushola di Indonesia.',
-  twitterImage: `${origin}/infaqris.png`,
+  twitterCard: () => (sharedLocation.value ? 'summary_large_image' : 'summary'),
+  twitterTitle: () => (sharedLocation.value ? sharedLocation.value.name : defaultTitle),
+  twitterDescription: () =>
+    sharedLocation.value
+      ? `Scan QRIS di ${sharedLocation.value.name} untuk zakat & infaq.`
+      : 'Peta crowdsource lokasi QRIS masjid dan mushola di Indonesia.',
+  twitterImage: () =>
+    sharedLocation.value
+      ? `${origin}/api/og/${sharedLocation.value.id}.png`
+      : `${origin}/infaqris.png`,
 })
 
 // Invalidate map size when switching to the map tab (Leaflet needs a visible container)
