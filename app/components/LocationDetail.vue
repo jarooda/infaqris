@@ -1,5 +1,5 @@
 <template>
-  <Dialog :open="true" size="sm" :show-close="false" @close="$emit('close')">
+  <Dialog :open="true" size="md" :show-close="false" @close="$emit('close')">
     <div class="py-5 space-y-3">
       <!-- Header -->
       <div class="flex items-start justify-between">
@@ -8,19 +8,50 @@
           <p v-if="location.description" class="text-sm text-(--text-secondary) mt-1">
             {{ location.description }}
           </p>
-          <a
-            :href="`https://www.google.com/maps?q=${location.latitude},${location.longitude}`"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-xs text-(--text-tertiary) mt-1 hover:text-(--accent) transition-colors inline-flex items-center gap-1"
-          >
-            <Icon name="material-symbols:location-on-outline" class="w-3 h-3 shrink-0" />
-            {{ location.latitude.toFixed(6) }}, {{ location.longitude.toFixed(6) }}
-          </a>
         </div>
-        <IconButton size="sm" class="ml-3" aria-label="Close" @click="$emit('close')">
+        <IconButton size="sm" class="ml-3 shrink-0" aria-label="Close" @click="$emit('close')">
           <Icon name="material-symbols:close" />
         </IconButton>
+      </div>
+
+      <!-- Coordinate (left) & share (right) -->
+      <div class="flex items-center justify-between gap-2">
+        <a
+          :href="`https://www.google.com/maps?q=${location.latitude},${location.longitude}`"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-xs text-(--text-tertiary) hover:text-(--accent) transition-colors inline-flex items-center gap-1 min-w-0"
+        >
+          <Icon name="material-symbols:location-on-outline" class="w-3 h-3 shrink-0" />
+          {{ location.latitude.toFixed(6) }}, {{ location.longitude.toFixed(6) }}
+        </a>
+        <DropdownMenu align="end">
+          <template #trigger>
+            <Button variant="secondary" size="sm">
+              <template #icon><Icon name="material-symbols:share-outline" /></template>
+              Share
+            </Button>
+          </template>
+          <div class="jl-share-row">
+            <DropdownMenuItem aria-label="Share via WhatsApp" @select="shareVia('whatsapp')">
+              <template #icon><Icon name="simple-icons:whatsapp" /></template>
+            </DropdownMenuItem>
+            <DropdownMenuItem aria-label="Share via Telegram" @select="shareVia('telegram')">
+              <template #icon><Icon name="simple-icons:telegram" /></template>
+            </DropdownMenuItem>
+            <DropdownMenuItem aria-label="Share via Facebook" @select="shareVia('facebook')">
+              <template #icon><Icon name="simple-icons:facebook" /></template>
+            </DropdownMenuItem>
+            <DropdownMenuItem aria-label="Share via X" @select="shareVia('x')">
+              <template #icon><Icon name="simple-icons:x" /></template>
+            </DropdownMenuItem>
+          </div>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem @select="copyShareLink">
+            <template #icon><Icon name="material-symbols:content-copy-outline" /></template>
+            Copy link
+          </DropdownMenuItem>
+        </DropdownMenu>
       </div>
 
       <!-- Pending approval banner -->
@@ -165,6 +196,11 @@ import { Alert } from '~/components/ui/alert'
 import { Button } from '~/components/ui/button'
 import { IconButton } from '~/components/ui/icon-button'
 import { Input } from '~/components/ui/input'
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '~/components/ui/dropdown-menu'
 
 const props = defineProps<{ location: QrisLocation }>()
 const emit = defineEmits<{
@@ -191,6 +227,43 @@ const canConfirmDelete = computed(() => deleteConfirmText.value === 'DELETE QRIS
 const hasMccMismatch = computed(() => isMccMismatch(qrisInfo.value?.mcc))
 const qrRevealed = ref(false)
 const showQr = computed(() => !isPending.value && (!hasMccMismatch.value || qrRevealed.value))
+
+function shareUrl(): string {
+  const { origin } = useRequestURL()
+  return `${origin}/?id=${props.location.id}`
+}
+
+function shareText(): string {
+  return `Yuk zakat & infaq di ${props.location.name} lewat QRIS! Scan QRIS-nya di sini:`
+}
+
+function shareMessage(): string {
+  return `${shareText()} ${shareUrl()}`
+}
+
+function shareVia(target: 'whatsapp' | 'telegram' | 'facebook' | 'x') {
+  const url = shareUrl()
+  const text = shareText()
+  const links: Record<typeof target, string> = {
+    whatsapp: `https://wa.me/?text=${encodeURIComponent(shareMessage())}`,
+    telegram: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+    // Facebook's sharer.php only ever reads og:title/og:description/og:image from
+    // the shared URL itself (it ignores any prefilled text) — the page's meta tags
+    // are what fill in the post, not a query param here.
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+    x: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+  }
+  window.open(links[target], '_blank', 'noopener,noreferrer')
+}
+
+async function copyShareLink() {
+  try {
+    await navigator.clipboard.writeText(shareUrl())
+    showToast('Link copied.', 'success')
+  } catch {
+    showToast('Failed to copy link.', 'error')
+  }
+}
 
 function cancelDelete() {
   confirmingDelete.value = false
@@ -244,3 +317,22 @@ async function handleDelete() {
   }
 }
 </script>
+
+<style scoped>
+/* Lay the social share items out as an icon-only row instead of the menu's
+   default full-width, labelled rows. */
+.jl-share-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1);
+}
+.jl-share-row :deep(.jl-menu__item) {
+  width: auto;
+  padding: var(--space-2);
+  color: var(--text-secondary);
+}
+.jl-share-row :deep(.jl-menu__item-icon) {
+  color: inherit;
+}
+</style>
