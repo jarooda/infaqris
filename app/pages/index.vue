@@ -140,22 +140,40 @@ const { data: sharedLocation } = await useAsyncData(
 const defaultTitle = 'InfaQRIS — Scan. Give. Berkah.'
 const defaultDescription =
   'Peta crowdsource lokasi QRIS masjid dan mushola di Indonesia. Temukan, tambah, dan verifikasi titik QRIS terdekat.'
+const defaultOgDescription = 'Peta crowdsource lokasi QRIS masjid dan mushola di Indonesia.'
+
+// True once the ?id= fetch has settled and found nothing — distinct from the
+// plain index (no id at all), so a dead share link doesn't read as the homepage.
+const idNotFound = computed(() => !!route.query.id && !sharedLocation.value)
+const notFoundTitle = 'Lokasi Tidak Ditemukan — InfaQRIS'
+const notFoundDescription =
+  'Lokasi QRIS yang dibagikan tidak ditemukan atau mungkin sudah dihapus. Jelajahi peta lokasi QRIS masjid dan mushola lainnya di InfaQRIS.'
 
 useSeoMeta({
-  title: () =>
-    sharedLocation.value
-      ? `${sharedLocation.value.name} — Bagikan Lokasi Zakat/Infaq | InfaQRIS`
-      : defaultTitle,
-  description: () =>
-    sharedLocation.value
-      ? `Scan QRIS di ${sharedLocation.value.name} untuk zakat & infaq. Lihat lokasi & detail QRIS-nya di InfaQRIS.`
-      : defaultDescription,
+  title: () => {
+    if (sharedLocation.value)
+      return `${sharedLocation.value.name} — Bagikan Lokasi Zakat/Infaq | InfaQRIS`
+    if (idNotFound.value) return notFoundTitle
+    return defaultTitle
+  },
+  description: () => {
+    if (sharedLocation.value)
+      return `Scan QRIS di ${sharedLocation.value.name} untuk zakat & infaq. Lihat lokasi & detail QRIS-nya di InfaQRIS.`
+    if (idNotFound.value) return notFoundDescription
+    return defaultDescription
+  },
   ogUrl: () => (sharedLocation.value ? `${origin}/?id=${sharedLocation.value.id}` : origin),
-  ogTitle: () => (sharedLocation.value ? sharedLocation.value.name : defaultTitle),
-  ogDescription: () =>
-    sharedLocation.value
-      ? `Scan QRIS di ${sharedLocation.value.name} untuk zakat & infaq.`
-      : 'Peta crowdsource lokasi QRIS masjid dan mushola di Indonesia.',
+  ogTitle: () => {
+    if (sharedLocation.value) return sharedLocation.value.name
+    if (idNotFound.value) return notFoundTitle
+    return defaultTitle
+  },
+  ogDescription: () => {
+    if (sharedLocation.value)
+      return `Scan QRIS di ${sharedLocation.value.name} untuk zakat & infaq.`
+    if (idNotFound.value) return notFoundDescription
+    return defaultOgDescription
+  },
   ogImage: () =>
     sharedLocation.value
       ? `${origin}/api/og/${sharedLocation.value.id}.png`
@@ -164,11 +182,17 @@ useSeoMeta({
   ogImageHeight: 800,
   ogType: 'website',
   twitterCard: () => (sharedLocation.value ? 'summary_large_image' : 'summary'),
-  twitterTitle: () => (sharedLocation.value ? sharedLocation.value.name : defaultTitle),
-  twitterDescription: () =>
-    sharedLocation.value
-      ? `Scan QRIS di ${sharedLocation.value.name} untuk zakat & infaq.`
-      : 'Peta crowdsource lokasi QRIS masjid dan mushola di Indonesia.',
+  twitterTitle: () => {
+    if (sharedLocation.value) return sharedLocation.value.name
+    if (idNotFound.value) return notFoundTitle
+    return defaultTitle
+  },
+  twitterDescription: () => {
+    if (sharedLocation.value)
+      return `Scan QRIS di ${sharedLocation.value.name} untuk zakat & infaq.`
+    if (idNotFound.value) return notFoundDescription
+    return defaultOgDescription
+  },
   twitterImage: () =>
     sharedLocation.value
       ? `${origin}/api/og/${sharedLocation.value.id}.png`
