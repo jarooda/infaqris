@@ -1,17 +1,17 @@
 import { getLocations } from '../utils/sheets'
 
-let cache: { data: ReturnType<typeof stripEmails>; expiresAt: number } | null = null
-const CACHE_TTL = 60_000
-
 function stripEmails(locations: Awaited<ReturnType<typeof getLocations>>) {
   return locations.map(({ creator: _c, latest_editor: _le, ...loc }) => loc)
 }
 
-export default defineEventHandler(async () => {
-  const now = Date.now()
-  if (cache && cache.expiresAt > now) return cache.data
+export default defineEventHandler(async (event) => {
+  // max-age=0 keeps the browser revalidating (so a submitter isn't served their
+  // own pre-edit copy); s-maxage lets the CDN absorb the fan-out instead.
+  setResponseHeader(
+    event,
+    'Cache-Control',
+    'public, max-age=0, s-maxage=60, stale-while-revalidate=300',
+  )
 
-  const data = stripEmails(await getLocations())
-  cache = { data, expiresAt: now + CACHE_TTL }
-  return data
+  return stripEmails(await getLocations())
 })

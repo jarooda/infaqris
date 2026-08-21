@@ -1,5 +1,5 @@
 import { isNumber } from 'jalutils/type'
-import { getLocations, updateLocation } from '../../utils/sheets'
+import { getAdminLocations, updateLocation } from '../../utils/sheets'
 import { requireAdmin } from '../../utils/admin'
 import { requireTurnstile } from '../../utils/turnstile'
 import { sendLocationUpdatedNotification } from '../../utils/mailer'
@@ -27,8 +27,10 @@ export default defineEventHandler(async (event) => {
   const latitude = Math.max(-90, Math.min(90, body.latitude))
   const longitude = Math.max(-180, Math.min(180, body.longitude))
 
-  // If the entry is pending (status 2), promote it to active (status 1) on admin edit
-  const all = await getLocations()
+  // If the entry is pending (status 2), promote it to active (status 1) on admin edit.
+  // Must read the admin view — the public one filters to status 1, which would
+  // hide the very pending rows this check exists to promote.
+  const all = await getAdminLocations()
   const current = all.find((l) => l.id === id)
   const newStatus = current?.status === '2' ? '1' : undefined
 

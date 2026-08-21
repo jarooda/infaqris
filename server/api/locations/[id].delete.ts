@@ -1,4 +1,4 @@
-import { getLocations, softDeleteLocation } from '../../utils/sheets'
+import { fetchLocations, softDeleteLocation } from '../../utils/sheets'
 import { requireAdmin } from '../../utils/admin'
 import { sendLocationDeletedNotification } from '../../utils/mailer'
 
@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ statusCode: 400, message: 'ID is required' })
 
-  const all = await getLocations()
+  const all = await fetchLocations()
   const current = all.find((l) => l.id === id)
 
   await softDeleteLocation(id, email)
