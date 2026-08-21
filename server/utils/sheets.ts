@@ -36,28 +36,63 @@ async function findRowIndex(id: string): Promise<number> {
 // A=id  B=name  C=description  D=latitude  E=longitude  F=qris
 // G=created_at  H=modified_at  I=creator  J=latest_editor  K=status (1=active, 0=deleted)
 
-export async function getLocations() {
+function mapRow(row: unknown[]) {
+  return {
+    id: (row[0] ?? '') as string,
+    name: (row[1] ?? '') as string,
+    description: (row[2] ?? '') as string,
+    latitude: parseFloat(row[3] as string) || 0,
+    longitude: parseFloat(row[4] as string) || 0,
+    qris: (row[5] ?? '') as string,
+    created_at: (row[6] ?? '') as string,
+    modified_at: (row[7] ?? '') as string,
+    creator: (row[8] ?? '') as string,
+    latest_editor: (row[9] ?? '') as string,
+    status: (row[10] ?? '1') as string,
+  }
+}
+
+export type Location = ReturnType<typeof mapRow>
+
+// Uncached read — use this on write paths, where a decision is made from the
+// current row and stale data would corrupt the write.
+export async function fetchLocations(): Promise<Location[]> {
   const sheets = getSheets()
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: spreadsheetId(),
     range: 'A2:K',
   })
 
-  return (res.data.values ?? [])
-    .map((row) => ({
-      id: row[0] ?? '',
-      name: row[1] ?? '',
-      description: row[2] ?? '',
-      latitude: parseFloat(row[3]) || 0,
-      longitude: parseFloat(row[4]) || 0,
-      qris: row[5] ?? '',
-      created_at: row[6] ?? '',
-      modified_at: row[7] ?? '',
-      creator: row[8] ?? '',
-      latest_editor: row[9] ?? '',
-      status: row[10] ?? '1',
-    }))
-    .filter((loc) => loc.id && loc.status === '1')
+  return (res.data.values ?? []).map(mapRow).filter((loc) => loc.id && loc.status === '1')
+}
+
+// --- Active-locations cache ---
+//
+// Shared by every public read path (/api/locations, /api/locations/[id],
+// /api/og/[id]) so one Sheets read serves all three. The in-flight promise is
+// cached rather than the resolved value, so a burst of concurrent misses
+// collapses into a single upstream request instead of stampeding.
+
+const LOCATIONS_TTL = 60_000
+let locationsCache: { promise: Promise<Location[]>; expiresAt: number } | null = null
+
+export function invalidateLocations() {
+  locationsCache = null
+}
+
+export function getLocations(): Promise<Location[]> {
+  const now = Date.now()
+  if (locationsCache && locationsCache.expiresAt > now) return locationsCache.promise
+
+  const promise = fetchLocations()
+  locationsCache = { promise, expiresAt: now + LOCATIONS_TTL }
+
+  // A failed fetch must not be served for the full TTL.
+  promise.catch(() => {
+    if (locationsCache?.promise === promise) locationsCache = null
+  })
+
+  return promise
 }
 
 export async function addLocation(data: {
@@ -96,6 +131,8 @@ export async function addLocation(data: {
       ],
     },
   })
+
+  invalidateLocations()
 
   return {
     id,
@@ -148,6 +185,8 @@ export async function updateLocation(
     requestBody: { valueInputOption: 'RAW', data: ranges },
   })
 
+  invalidateLocations()
+
   return {
     id,
     ...data,
@@ -164,21 +203,7 @@ export async function getAdminLocations() {
     range: 'A2:K',
   })
 
-  return (res.data.values ?? [])
-    .map((row) => ({
-      id: row[0] ?? '',
-      name: row[1] ?? '',
-      description: row[2] ?? '',
-      latitude: parseFloat(row[3]) || 0,
-      longitude: parseFloat(row[4]) || 0,
-      qris: row[5] ?? '',
-      created_at: row[6] ?? '',
-      modified_at: row[7] ?? '',
-      creator: row[8] ?? '',
-      latest_editor: row[9] ?? '',
-      status: row[10] ?? '1',
-    }))
-    .filter((loc) => loc.id)
+  return (res.data.values ?? []).map(mapRow).filter((loc) => loc.id)
 }
 
 export async function updateLocationStatus(id: string, status: string, latestEditor: string) {
@@ -198,6 +223,8 @@ export async function updateLocationStatus(id: string, status: string, latestEdi
       ],
     },
   })
+
+  invalidateLocations()
 }
 
 export async function deleteLocation(id: string) {
@@ -222,6 +249,8 @@ export async function deleteLocation(id: string) {
       ],
     },
   })
+
+  invalidateLocations()
 }
 
 export async function softDeleteLocation(id: string, latestEditor: string) {
@@ -241,4 +270,6 @@ export async function softDeleteLocation(id: string, latestEditor: string) {
       ],
     },
   })
+
+  invalidateLocations()
 }
