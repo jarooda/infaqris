@@ -8,7 +8,7 @@ const props = withDefaults(
     defaultOpen?: boolean
     disabled?: boolean
     variant?: 'ghost' | 'bordered'
-    chevronPosition?: 'start' | 'end'
+    chevronPosition?: 'start' | 'end' | 'none'
   }>(),
   {
     trigger: '',

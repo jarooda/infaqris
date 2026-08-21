@@ -33,13 +33,22 @@
       v-if="hasExtra"
       :open="showMore"
       variant="ghost"
-      chevron-position="start"
+      chevron-position="none"
       @update:open="showMore = $event"
     >
       <template #trigger>
-        <span class="text-xs text-(--text-tertiary)">
-          {{ showMore ? 'Sembunyikan' : 'Lihat detail lain' }}
-        </span>
+        <Button variant="secondary" size="sm">
+          <template #icon
+            ><Icon
+              :name="
+                showMore
+                  ? 'material-symbols:arrow-upward-alt'
+                  : 'material-symbols:arrow-downward-alt'
+              "
+          /></template>
+
+          {{ showMore ? 'Hide details' : 'See more details' }}
+        </Button>
       </template>
       <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
         <div v-if="info.merchantId" class="col-span-2">
@@ -72,6 +81,7 @@
 <script setup lang="ts">
 import type { QrisInfo } from '~/utils/parseQris'
 import { Collapsible } from '~/components/ui/collapsible'
+import { Button } from '~/components/ui/button'
 
 const props = withDefaults(defineProps<{ info: QrisInfo; highlight?: boolean }>(), {
   highlight: false,

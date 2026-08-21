@@ -23,7 +23,7 @@
   background: transparent;
   border: none;
   border-radius: var(--radius-lg);
-  padding: var(--space-2) 0;
+  padding: var(--space-2) var(--space-3);
   transition: background var(--duration-fast) var(--ease-standard);
 }
 .jl-collapsible--bordered .jl-collapsible__trigger {
@@ -42,6 +42,9 @@
 }
 .jl-collapsible__trigger[data-chevron='start'] {
   flex-direction: row;
+}
+.jl-collapsible__trigger[data-chevron='none'] .jl-collapsible__chevron {
+  display: none;
 }
 
 .jl-collapsible__chevron {
